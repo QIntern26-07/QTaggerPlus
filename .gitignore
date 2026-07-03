@@ -279,3 +279,19 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# DATASETS
+data/raw/
+data/processed/
+
+# Common dataset files
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Python
+__pycache__/
+*.pyc
+
+# Colab Hidden Files
+.ipynb_checkpoints/
