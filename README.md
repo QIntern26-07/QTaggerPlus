@@ -56,7 +56,7 @@ Fast smoke test (one model, one task, fewer folds/trials — useful for verifyin
 environment is set up correctly before committing to a full run):
 
 ```sh
-uv run python -m classical --models random_forest --tasks binary --folds 3 --trials 5
+uv run python -m classical --models random_forest --tasks binary --folds 3 --trials 3
 ```
 
 ### 5. Outputs
