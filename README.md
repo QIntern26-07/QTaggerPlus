@@ -12,7 +12,7 @@
 
 ## Classical baseline — CIC-MalMem-2022
 
-A classical ML baseline (Random Forest, SVM, Logistic Regression, XGBoost) over the
+A classical ML baseline (Random Forest, XGBoost, LightGBM, SVM) over the
 CIC-MalMem-2022 obfuscated-malware-memory dataset, with nested stratified CV, Optuna
 hyperparameter tuning, and paired significance testing. This baseline exists so the
 quantum pipeline has a fair, reproducible point of comparison (same folds, same metrics).
