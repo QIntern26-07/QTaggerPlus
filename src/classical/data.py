@@ -58,3 +58,39 @@ def load_folds(path: str):
     return [
         (np.array(item["train"]), np.array(item["test"])) for item in payload
     ]
+
+
+def save_predictions(records, path: str) -> None:
+    """Persist per-fold test_idx/y_true/y_pred for one model x task run.
+
+    `records` is the list of per-fold dicts returned by run.run_nested_cv (each
+    must contain "fold", "test_idx", "y_true", "y_pred"). Stored as four
+    parallel flat arrays (one row per test sample, repeated fold id) inside a
+    single .npz so paired significance tests in compare.py can later reload
+    real classical-model predictions without depending on aggregated metrics.
+    """
+    fold_ids, test_idx, y_true, y_pred = [], [], [], []
+    for rec in records:
+        n = len(rec["test_idx"])
+        fold_ids.append(np.full(n, rec["fold"]))
+        test_idx.append(np.asarray(rec["test_idx"]))
+        y_true.append(np.asarray(rec["y_true"]))
+        y_pred.append(np.asarray(rec["y_pred"]))
+    np.savez(
+        path,
+        fold_ids=np.concatenate(fold_ids),
+        test_idx=np.concatenate(test_idx),
+        y_true=np.concatenate(y_true),
+        y_pred=np.concatenate(y_pred),
+    )
+
+
+def load_predictions(path: str) -> dict:
+    """Load predictions saved by save_predictions back into a dict of flat arrays."""
+    with np.load(path) as npz:
+        return {
+            "fold_ids": npz["fold_ids"],
+            "test_idx": npz["test_idx"],
+            "y_true": npz["y_true"],
+            "y_pred": npz["y_pred"],
+        }

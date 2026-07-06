@@ -30,9 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--tasks", nargs="+", default=["binary", "multiclass"])
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--trials", type=int, default=25)
+    p.add_argument("--inner-splits", type=int, default=3)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--wandb", action="store_true")
     p.add_argument("--out", default="results/cic/metrics.csv")
+    p.add_argument("--predictions-dir", default="results/cic")
     return p
 
 
@@ -53,8 +55,13 @@ def main(argv=None) -> int:
             records = run.run_nested_cv(
                 X, y, task=task, name=name, folds=folds,
                 n_trials=args.trials, seed=args.seed, use_wandb=args.wandb,
+                inner_splits=args.inner_splits, dataset_name="cic-malmem",
             )
             rows.append(aggregate_records(records))
+            Path(args.predictions_dir).mkdir(parents=True, exist_ok=True)
+            pred_path = f"{args.predictions_dir}/{name}_{task}_predictions.npz"
+            data.save_predictions(records, pred_path)
+            logger.info(f"wrote per-fold predictions to {pred_path}")
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(args.out, index=False)
