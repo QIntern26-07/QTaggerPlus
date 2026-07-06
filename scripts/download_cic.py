@@ -1,12 +1,13 @@
 """Download CIC-MalMem-2022 from Kaggle into data/cic_malmem/.
 
-Requires the Kaggle API token at ~/.kaggle/kaggle.json (chmod 600).
+Requires a Kaggle API token, generated at kaggle.com/settings/api, saved to
+~/.kaggle/access_token (chmod 600) or exported as KAGGLE_API_TOKEN.
 """
 import subprocess
 import sys
 from pathlib import Path
 
-SLUG = "joebeachcapital/cic-malmem-2022"  # verify slug is live before first run
+SLUG = "luccagodoy/obfuscated-malware-memory-2022-cic"
 DEST = Path("data/cic_malmem")
 
 
