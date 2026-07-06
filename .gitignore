@@ -280,7 +280,7 @@ cython_debug/
 #.idea/
 
 # Datasets (raw data gitignored; committed fold indices are the exception)
-data/
+data/*
 !data/splits/
 !data/splits/**
 results/cic/*
