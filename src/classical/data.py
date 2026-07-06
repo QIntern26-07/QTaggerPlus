@@ -1,7 +1,11 @@
 """Load CIC-MalMem-2022 and construct binary and multiclass labels."""
 from __future__ import annotations
 
+import json
+
+import numpy as np
 import pandas as pd
+from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 FEATURE_LABEL_COLS = ("Category", "Class")
@@ -27,3 +31,30 @@ def build_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
         LabelEncoder().fit_transform(family), name="y_multiclass"
     )
     return X, y_binary, y_multiclass
+
+
+def make_outer_folds(y, n_splits: int = 5, seed: int = 42):
+    """Return a list of (train_idx, test_idx) numpy arrays via stratified k-fold."""
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    X_dummy = np.zeros((len(y), 1))
+    return [
+        (train_idx, test_idx) for train_idx, test_idx in skf.split(X_dummy, y)
+    ]
+
+
+def save_folds(folds, path: str) -> None:
+    """Persist folds as JSON lists so any framework (incl. quantum) can reload them."""
+    payload = [
+        {"train": train.tolist(), "test": test.tolist()} for train, test in folds
+    ]
+    with open(path, "w") as fh:
+        json.dump(payload, fh)
+
+
+def load_folds(path: str):
+    """Load folds saved by save_folds back into (train_idx, test_idx) numpy arrays."""
+    with open(path) as fh:
+        payload = json.load(fh)
+    return [
+        (np.array(item["train"]), np.array(item["test"])) for item in payload
+    ]
