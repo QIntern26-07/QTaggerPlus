@@ -29,4 +29,9 @@ def mcnemar(y_true, pred_a, pred_b) -> dict:
     table = [[int(np.sum(~correct_a & ~correct_b)), n01],
              [n10, int(np.sum(correct_a & correct_b))]]
     result = sm_mcnemar(table, exact=True)
-    return {"statistic": float(result.statistic), "pvalue": float(result.pvalue)}
+    return {
+        "statistic": float(result.statistic),
+        "pvalue": float(result.pvalue),
+        "n01": n01,
+        "n10": n10,
+    }

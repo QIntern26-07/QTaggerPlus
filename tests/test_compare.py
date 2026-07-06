@@ -34,21 +34,22 @@ def test_mcnemar_disagreement_with_reference():
     Setup:
       y_true = [1, 1, 1, 1, 0, 0, 0, 0]
       pred_a = [1, 1, 1, 0, 0, 0, 0, 0]  # 7 correct, 1 wrong
-      pred_b = [0, 0, 0, 0, 1, 1, 1, 1]  # 4 correct, 4 wrong (opposite errors)
+      pred_b = [0, 0, 0, 0, 1, 1, 1, 1]  # 0 correct, 8 wrong (opposite errors)
 
     Contingency table (after computing correct_a and correct_b):
       correct_a = [T, T, T, F, T, T, T, T]
-      correct_b = [F, F, F, F, T, T, T, T]
+      correct_b = [F, F, F, F, F, F, F, F]
       Discordant pairs:
         - Index 0: a correct, b wrong (n10)
         - Index 1: a correct, b wrong (n10)
         - Index 2: a correct, b wrong (n10)
+        - Index 3: a wrong, b wrong (n00)
         - Index 4: a correct, b wrong (n10)
         - Index 5: a correct, b wrong (n10)
         - Index 6: a correct, b wrong (n10)
         - Index 7: a correct, b wrong (n10)
       Concordant:
-        - Index 3: a wrong, b wrong (n00)
+        (none with both correct)
       So: n10=7, n01=0, n00=1, n11=0
       Table: [[1, 0], [7, 0]]
     """
@@ -61,6 +62,10 @@ def test_mcnemar_disagreement_with_reference():
     # With genuine disagreement (n10 >> n01), pvalue should be significant
     assert 0.0 <= res["pvalue"] <= 1.0
     assert res["pvalue"] < 1.0
+
+    # Direct assertions on discordant counts catch swap bugs that pvalue alone misses
+    assert res["n01"] == 0  # a wrong, b right: should be 0
+    assert res["n10"] == 7  # a right, b wrong: should be 7
 
     # Verify against reference computation to catch row/column transposition
     # Build table manually: [[n00, n01], [n10, n11]]
