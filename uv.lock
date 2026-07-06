@@ -2329,7 +2329,7 @@ wheels = [
 [[package]]
 name = "qtaggerplus"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "imbalanced-learn" },
     { name = "lightgbm" },
