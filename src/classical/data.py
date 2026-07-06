@@ -20,13 +20,13 @@ def build_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     """Split a raw frame into features X, binary y, and multiclass (family) y.
 
     Binary: Class == "Malware" -> 1, else 0.
-    Multiclass: family = first token of Category (e.g. "Ransomware", "Benign").
+    Multiclass: family = first two tokens of Category (e.g. "Ransomware-Ako", "Benign").
     """
     X = df.drop(columns=list(FEATURE_LABEL_COLS))
     y_binary = (df["Class"].str.strip().str.lower() == "malware").astype(int)
     y_binary = pd.Series(y_binary, name="y_binary")
 
-    family = df["Category"].str.split("-").str[0].str.strip()
+    family = df["Category"].str.split("-").str[:2].str.join("-").str.strip()
     y_multiclass = pd.Series(
         LabelEncoder().fit_transform(family), name="y_multiclass"
     )
