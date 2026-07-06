@@ -6,7 +6,7 @@ import optuna
 from loguru import logger
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-from classical.evaluate import compute_metrics, timed
+from classical.evaluate import compute_metrics, confusion_matrix_figure, timed
 from classical.features import build_feature_pipeline
 from classical.models import make_model, suggest_params
 
@@ -43,7 +43,7 @@ def _proba_for(model, X, task):
     return proba[:, 1] if task == "binary" else proba
 
 
-def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed):
+def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed, inner_splits=3):
     """Tune+fit on train fold, score on test fold; return a per-fold record."""
     X = np.asarray(X, dtype=float)
     y = np.asarray(y)
@@ -54,7 +54,6 @@ def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed):
     X_tr_t = pipeline.fit_transform(X_tr)  # fit on TRAIN fold only (no leakage)
     X_te_t = pipeline.transform(X_te)
 
-    inner_splits = 3
     (model, best_params), train_time = timed(
         tune_and_fit, name, task, X_tr_t, y_tr, n_trials, inner_splits, seed
     )
@@ -76,29 +75,35 @@ def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed):
     }
 
 
-def run_nested_cv(X, y, task, name, folds, n_trials=25, seed=42, use_wandb=False):
+def run_nested_cv(
+    X, y, task, name, folds, n_trials=25, seed=42, use_wandb=False,
+    inner_splits=3, dataset_name="cic-malmem",
+):
     """Run every outer fold for one model x task; optionally log each to W&B."""
     records = []
     for i, (train_idx, test_idx) in enumerate(folds):
         logger.info(f"[{name}/{task}] outer fold {i + 1}/{len(folds)}")
-        rec = evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed)
+        rec = evaluate_fold(
+            name, task, X, y, train_idx, test_idx, n_trials, seed,
+            inner_splits=inner_splits,
+        )
         rec["fold"] = i
         records.append(rec)
         if use_wandb:
-            _log_fold_to_wandb(rec)
+            _log_fold_to_wandb(rec, dataset_name=dataset_name)
     return records
 
 
-def _log_fold_to_wandb(rec):
+def _log_fold_to_wandb(rec, dataset_name="cic-malmem"):
     """One W&B run per model x task x fold; imported lazily so tests stay offline."""
     import wandb
 
     run = wandb.init(
         project="qtaggerplus-classical",
-        group=f"cic-{rec['task']}",
+        group=f"{dataset_name}-{rec['task']}",
         name=f"{rec['model']}-fold{rec['fold']}",
         config={"model": rec["model"], "task": rec["task"],
-                "dataset": "cic-malmem", **rec["best_params"]},
+                "dataset": dataset_name, **rec["best_params"]},
         reinit=True,
     )
     wandb.log({
@@ -106,4 +111,15 @@ def _log_fold_to_wandb(rec):
         "train_time_sec": rec["train_time_sec"],
         "inference_time_sec": rec["inference_time_sec"],
     })
+
+    fig = confusion_matrix_figure(rec["y_true"], rec["y_pred"])
+    wandb.log({"confusion_matrix": wandb.Image(fig)})
+    import matplotlib.pyplot as plt
+    plt.close(fig)
+
+    table = wandb.Table(columns=["test_idx", "y_true", "y_pred"])
+    for idx, yt, yp in zip(rec["test_idx"], rec["y_true"], rec["y_pred"]):
+        table.add_data(int(idx), int(yt), int(yp))
+    wandb.log({"predictions": table})
+
     run.finish()
