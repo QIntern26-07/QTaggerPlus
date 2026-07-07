@@ -13,17 +13,25 @@ from classical.models import make_model, suggest_params
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
-def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed):
-    """Optuna inner-CV tuning on the training fold; refit best on full train fold."""
+def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed, n_jobs=-1):
+    """Optuna inner-CV tuning on the training fold; refit best on full train fold.
+
+    `n_jobs` controls parallelism across the inner CV folds (via cross_val_score).
+    The model itself is always built with n_jobs=1 *inside* the inner-CV objective,
+    since cross_val_score already parallelizes across `inner_splits` folds — giving
+    each fold's model its own n_jobs=-1 as well would oversubscribe CPU/RAM by a
+    factor of inner_splits. The single final refit (one model, not nested) uses the
+    full `n_jobs` value.
+    """
     inner_cv = StratifiedKFold(
         n_splits=inner_splits, shuffle=True, random_state=seed
     )
 
     def objective(trial):
         params = suggest_params(name, trial)
-        model = make_model(name, params, task, seed=seed)
+        model = make_model(name, params, task, seed=seed, n_jobs=1)
         scores = cross_val_score(
-            model, X_train, y_train, cv=inner_cv, scoring="f1_macro", n_jobs=-1
+            model, X_train, y_train, cv=inner_cv, scoring="f1_macro", n_jobs=n_jobs
         )
         return float(np.mean(scores))
 
@@ -33,7 +41,7 @@ def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed):
         pruner=optuna.pruners.MedianPruner(),
     )
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
-    best = make_model(name, study.best_params, task, seed=seed)
+    best = make_model(name, study.best_params, task, seed=seed, n_jobs=n_jobs)
     best.fit(X_train, y_train)
     return best, study.best_params
 
@@ -43,7 +51,9 @@ def _proba_for(model, X, task):
     return proba[:, 1] if task == "binary" else proba
 
 
-def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed, inner_splits=3):
+def evaluate_fold(
+    name, task, X, y, train_idx, test_idx, n_trials, seed, inner_splits=3, n_jobs=-1,
+):
     """Tune+fit on train fold, score on test fold; return a per-fold record."""
     X = np.asarray(X, dtype=float)
     y = np.asarray(y)
@@ -55,7 +65,8 @@ def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed, inner_s
     X_te_t = pipeline.transform(X_te)
 
     (model, best_params), train_time = timed(
-        tune_and_fit, name, task, X_tr_t, y_tr, n_trials, inner_splits, seed
+        tune_and_fit, name, task, X_tr_t, y_tr, n_trials, inner_splits, seed,
+        n_jobs=n_jobs,
     )
     y_pred, infer_time = timed(model.predict, X_te_t)
     y_proba = _proba_for(model, X_te_t, task)
@@ -77,7 +88,7 @@ def evaluate_fold(name, task, X, y, train_idx, test_idx, n_trials, seed, inner_s
 
 def run_nested_cv(
     X, y, task, name, folds, n_trials=25, seed=42, use_wandb=False,
-    inner_splits=3, dataset_name="cic-malmem",
+    inner_splits=3, dataset_name="cic-malmem", n_jobs=-1,
 ):
     """Run every outer fold for one model x task; optionally log each to W&B."""
     records = []
@@ -85,7 +96,7 @@ def run_nested_cv(
         logger.info(f"[{name}/{task}] outer fold {i + 1}/{len(folds)}")
         rec = evaluate_fold(
             name, task, X, y, train_idx, test_idx, n_trials, seed,
-            inner_splits=inner_splits,
+            inner_splits=inner_splits, n_jobs=n_jobs,
         )
         rec["fold"] = i
         records.append(rec)

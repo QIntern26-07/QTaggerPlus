@@ -13,6 +13,30 @@ def _toy_xy(task):
     return pd.DataFrame(X), pd.Series(y)
 
 
+def test_tune_and_fit_forces_single_threaded_model_during_inner_cv(monkeypatch):
+    """The inner-CV objective must build models with n_jobs=1 (cross_val_score
+    already parallelizes across inner_splits folds); only the single final refit
+    should use the caller's configured n_jobs value."""
+    calls = []
+    real_make_model = run.make_model
+
+    def spy_make_model(name, params, task, seed=42, n_jobs=-1):
+        calls.append(n_jobs)
+        return real_make_model(name, params, task, seed=seed, n_jobs=n_jobs)
+
+    monkeypatch.setattr(run, "make_model", spy_make_model)
+
+    X, y = _toy_xy("binary")
+    run.tune_and_fit(
+        "random_forest", "binary", X.values, y.values,
+        n_trials=2, inner_splits=2, seed=42, n_jobs=4,
+    )
+
+    assert len(calls) >= 2  # at least the inner-objective calls plus the final refit
+    assert calls[:-1] == [1] * (len(calls) - 1)  # every inner-CV model: n_jobs=1
+    assert calls[-1] == 4  # the single final refit: the configured n_jobs
+
+
 def test_run_nested_cv_binary_smoke():
     X, y = _toy_xy("binary")
     folds = data.make_outer_folds(y, n_splits=3, seed=42)

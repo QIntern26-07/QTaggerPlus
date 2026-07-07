@@ -10,21 +10,27 @@ from xgboost import XGBClassifier
 MODEL_NAMES = ("random_forest", "xgboost", "lightgbm", "svm")
 
 
-def make_model(name: str, params: dict, task: str, seed: int = 42):
-    """Construct an estimator with task-appropriate defaults merged with `params`."""
+def make_model(name: str, params: dict, task: str, seed: int = 42, n_jobs: int = -1):
+    """Construct an estimator with task-appropriate defaults merged with `params`.
+
+    `n_jobs` controls the estimator's own internal parallelism (ignored for SVM,
+    which has no such parameter). Callers doing nested parallelism (e.g. cross
+    validating several of these concurrently) should pass n_jobs=1 here to avoid
+    oversubscribing CPU/RAM.
+    """
     if name == "random_forest":
         return RandomForestClassifier(
-            random_state=seed, n_jobs=-1, class_weight="balanced", **params
+            random_state=seed, n_jobs=n_jobs, class_weight="balanced", **params
         )
     if name == "xgboost":
         objective = "binary:logistic" if task == "binary" else "multi:softprob"
         return XGBClassifier(
-            random_state=seed, n_jobs=-1, objective=objective,
+            random_state=seed, n_jobs=n_jobs, objective=objective,
             eval_metric="logloss", tree_method="hist", **params,
         )
     if name == "lightgbm":
         return LGBMClassifier(
-            random_state=seed, n_jobs=-1, class_weight="balanced",
+            random_state=seed, n_jobs=n_jobs, class_weight="balanced",
             verbose=-1, **params,
         )
     if name == "svm":

@@ -31,6 +31,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--trials", type=int, default=25)
     p.add_argument("--inner-splits", type=int, default=3)
+    p.add_argument(
+        "--n-jobs", type=int, default=-1,
+        help="parallelism for inner-CV fold evaluation and the final model refit "
+             "(default -1 = all cores). Lower this if training competes with other "
+             "programs for RAM/CPU on this machine.",
+    )
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--wandb", action="store_true")
     p.add_argument("--out", default="results/cic/metrics.csv")
@@ -56,6 +62,7 @@ def main(argv=None) -> int:
                 X, y, task=task, name=name, folds=folds,
                 n_trials=args.trials, seed=args.seed, use_wandb=args.wandb,
                 inner_splits=args.inner_splits, dataset_name="cic-malmem",
+                n_jobs=args.n_jobs,
             )
             rows.append(aggregate_records(records))
             Path(args.predictions_dir).mkdir(parents=True, exist_ok=True)

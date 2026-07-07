@@ -37,3 +37,15 @@ def test_suggest_params_integrates_with_make_model(name):
     params = models.suggest_params(name, trial)
     est = models.make_model(name, params=params, task="binary")
     assert hasattr(est, "fit")
+
+
+@pytest.mark.parametrize("name", ["random_forest", "xgboost", "lightgbm"])
+def test_make_model_threads_n_jobs(name):
+    est = models.make_model(name, params={}, task="binary", n_jobs=1)
+    assert est.get_params()["n_jobs"] == 1
+
+
+def test_make_model_svm_ignores_n_jobs_param():
+    # SVC has no n_jobs constructor arg; passing n_jobs must not raise.
+    est = models.make_model("svm", params={}, task="binary", n_jobs=1)
+    assert "n_jobs" not in est.get_params()
