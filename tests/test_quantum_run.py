@@ -22,6 +22,28 @@ def test_evaluate_fold_quantum_returns_timing_and_metrics():
     assert "f1_macro" in rec["metrics"]
 
 
+def _multiclass_data(n=45, d=5, n_classes=3, seed=0):
+    rng = np.random.default_rng(seed)
+    X = rng.normal(size=(n, d))
+    y = rng.integers(0, n_classes, size=n)
+    return X, y
+
+
+def test_evaluate_fold_quantum_multiclass_returns_valid_metrics():
+    # Covers the auc_scores softmax path x compute_metrics(multi_class="ovr")
+    # combination at the CV-integration level (evaluate_fold_quantum/
+    # run_quantum_cv), which every other test in this file skips by only
+    # exercising task="binary". This is the seam Finding 3's stratification
+    # fix (binary vs. multiclass label) most needs covered.
+    X, y = _multiclass_data()
+    tr, te = np.arange(0, 35), np.arange(35, 45)
+    grid = {"encoding": ["angle"], "bandwidth": [None], "C": [1.0],
+            "class_weight": [None]}
+    rec = evaluate_fold_quantum(X, y, "multiclass", tr, te, n_components=1,
+                                grid=grid, seed=0)
+    assert "f1_macro" in rec["metrics"]
+
+
 def test_run_quantum_cv_logs_to_mlflow(tmp_path):
     import mlflow
     X, y = _data()
