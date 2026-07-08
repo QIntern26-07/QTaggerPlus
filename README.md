@@ -122,3 +122,25 @@ Live per-fold results: https://wandb.ai/dduyanhhoang-fpt-university/qtaggerplus-
 * `data/splits/*.json` — the outer CV fold indices, **committed** so the quantum
   team can reuse the exact same train/test splits for a fair comparison.
 * `run.log` — rotating log file (loguru) capturing the full run.
+
+## Quantum QSVM (aligned with classical via PCA)
+
+Time a single 1-qubit run before committing to a sweep:
+```bash
+uv run python -m quantum --probe --n-components 1 --max-samples 120 --encodings angle iqp
+```
+
+Run the tuned QSVM CV and log to MLflow:
+```bash
+uv run python -m quantum --tasks binary --n-components 1 --folds 5 --mlflow
+```
+
+Run the classical baseline on the *same* PCA dimensionality for comparison:
+```bash
+uv run python -m classical --tasks binary --n-components 1 --mlflow
+```
+
+View results:
+```bash
+uv run mlflow ui   # then open http://127.0.0.1:5000
+```
