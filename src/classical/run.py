@@ -6,7 +6,7 @@ import optuna
 from loguru import logger
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-from common.evaluate import compute_metrics, confusion_matrix_figure, timed
+from common.evaluate import auc_scores, compute_metrics, confusion_matrix_figure, timed
 from common.preprocess import build_feature_pipeline
 from classical.models import make_model, suggest_params
 
@@ -14,7 +14,10 @@ optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
 def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed, n_jobs=-1):
-    """Optuna inner-CV tuning on the training fold; refit best on full train fold.
+    """Optuna inner-CV tuning, then a timed final refit on the full train fold.
+
+    Returns (model, best_params, fit_time_sec) where fit_time_sec is the wall
+    time of the single final refit only — tuning time is measured by the caller.
 
     `n_jobs` controls parallelism across the inner CV folds (via cross_val_score).
     The model itself is always built with n_jobs=1 *inside* the inner-CV objective,
@@ -42,13 +45,8 @@ def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed, n_j
     )
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
     best = make_model(name, study.best_params, task, seed=seed, n_jobs=n_jobs)
-    best.fit(X_train, y_train)
-    return best, study.best_params
-
-
-def _proba_for(model, X, task):
-    proba = model.predict_proba(X)
-    return proba[:, 1] if task == "binary" else proba
+    _, fit_time = timed(best.fit, X_train, y_train)
+    return best, study.best_params, fit_time
 
 
 def evaluate_fold(
@@ -64,21 +62,23 @@ def evaluate_fold(
     X_tr_t = pipeline.fit_transform(X_tr)  # fit on TRAIN fold only (no leakage)
     X_te_t = pipeline.transform(X_te)
 
-    (model, best_params), train_time = timed(
+    (model, best_params, fit_time), tune_plus_fit = timed(
         tune_and_fit, name, task, X_tr_t, y_tr, n_trials, inner_splits, seed,
         n_jobs=n_jobs,
     )
+    tune_time = tune_plus_fit - fit_time
     y_pred, infer_time = timed(model.predict, X_te_t)
-    y_proba = _proba_for(model, X_te_t, task)
+    y_score = auc_scores(model, X_te_t, task)
 
-    metrics = compute_metrics(y_te, y_pred, y_proba, task)
+    metrics = compute_metrics(y_te, y_pred, y_score, task)
     logger.info(f"[{name}/{task}] fold done: f1_macro={metrics['f1_macro']:.4f}")
     return {
         "model": name,
         "task": task,
         "metrics": metrics,
         "best_params": best_params,
-        "train_time_sec": train_time,
+        "fit_time_sec": fit_time,
+        "tune_time_sec": tune_time,
         "inference_time_sec": infer_time,
         "test_idx": np.asarray(test_idx),
         "y_true": y_te,
@@ -119,7 +119,8 @@ def _log_fold_to_wandb(rec, dataset_name="cic-malmem"):
     )
     wandb.log({
         **rec["metrics"],
-        "train_time_sec": rec["train_time_sec"],
+        "fit_time_sec": rec["fit_time_sec"],
+        "tune_time_sec": rec["tune_time_sec"],
         "inference_time_sec": rec["inference_time_sec"],
     })
 

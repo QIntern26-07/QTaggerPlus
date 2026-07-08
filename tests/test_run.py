@@ -48,8 +48,25 @@ def test_run_nested_cv_binary_smoke():
     assert len(records) == 3
     for rec in records:
         assert set(["accuracy", "f1_macro", "roc_auc"]).issubset(rec["metrics"])
-        assert "train_time_sec" in rec and "inference_time_sec" in rec
+        assert "fit_time_sec" in rec and "tune_time_sec" in rec
+        assert "inference_time_sec" in rec
         assert len(rec["y_pred"]) == len(rec["test_idx"])
+
+
+def test_evaluate_fold_reports_separate_tune_and_fit_times():
+    import numpy as np
+    from classical.run import evaluate_fold
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(60, 8))
+    y = (X[:, 0] > 0).astype(int)
+    folds_idx = (np.arange(0, 45), np.arange(45, 60))
+    rec = evaluate_fold(
+        "random_forest", "binary", X, y, folds_idx[0], folds_idx[1],
+        n_trials=2, seed=0, inner_splits=2, n_jobs=1,
+    )
+    assert "fit_time_sec" in rec and "tune_time_sec" in rec
+    assert "inference_time_sec" in rec
+    assert rec["fit_time_sec"] <= rec["tune_time_sec"] + rec["fit_time_sec"]
 
 
 def test_run_nested_cv_logs_confusion_matrix_and_predictions_to_wandb_offline(
