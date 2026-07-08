@@ -36,3 +36,13 @@ def test_run_quantum_cv_logs_to_mlflow(tmp_path):
     runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
     assert len(runs) == 1
     assert runs.iloc[0]["params.framework"] == "quantum"
+
+
+def test_timing_probe_single_fit_reports_kernel_time():
+    import numpy as np
+    from quantum.run import timing_probe
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(24, 4)); y = (X[:, 0] > 0).astype(int)
+    rec = timing_probe(X, y, "binary", n_components=1, encoding="angle", seed=0)
+    assert rec["kernel_build_train_s"] >= 0.0
+    assert "fit_time_sec" in rec and "inference_time_sec" in rec

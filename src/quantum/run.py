@@ -153,3 +153,29 @@ def _log_quantum_fold(rec, dataset_name, n_components, tracking_uri):
         fig = confusion_matrix_figure(rec["y_true"], rec["y_pred"])
         log.log_figure(fig, "confusion_matrix.png")
         plt.close(fig)
+
+
+def timing_probe(X, y, task, n_components, encoding, seed=42):
+    """Single untuned QSVM fit/predict to measure wall-clock before a full sweep.
+
+    Deliberately no CV and no tuning: the point is to learn the per-Gram cost at
+    a given (encoding, n_components) so grid and sample sizes can be chosen
+    sanely. Uses an 80/20 split of the provided data.
+    """
+    from sklearn.model_selection import train_test_split as _tts
+    X = np.asarray(X, dtype=float)
+    Xtr, Xte, ytr, yte = _tts(X, y, test_size=0.2, stratify=y, random_state=seed)
+    n_qubits = n_qubits_for(encoding, n_components)
+    Ztr, Zte = _prep(Xtr, Xte, n_components, encoding, n_qubits, seed)
+    model = QSVM(encoding=encoding, n_components=n_components, task=task, seed=seed)
+    _, fit_time = timed(model.fit, Ztr, ytr)
+    y_pred, infer_time = timed(model.predict, Zte)
+    y_score = auc_scores(model, Zte, task)
+    metrics = compute_metrics(yte, y_pred, y_score, task)
+    return {
+        "encoding": encoding, "n_components": n_components, "n_qubits": n_qubits,
+        "fit_time_sec": fit_time, "inference_time_sec": infer_time,
+        "kernel_build_train_s": model.kernel_build_train_s,
+        "kernel_build_test_s": model.kernel_build_test_s,
+        "kernel_evals": model.kernel_evals, "metrics": metrics,
+    }
