@@ -43,7 +43,7 @@ def test_run_nested_cv_binary_smoke():
     folds = data.make_outer_folds(y, n_splits=3, seed=42)
     records = run.run_nested_cv(
         X, y, task="binary", name="random_forest",
-        folds=folds, n_trials=2, seed=42, use_wandb=False,
+        folds=folds, n_trials=2, seed=42, use_mlflow=False,
     )
     assert len(records) == 3
     for rec in records:
@@ -69,23 +69,21 @@ def test_evaluate_fold_reports_separate_tune_and_fit_times():
     assert rec["fit_time_sec"] <= rec["tune_time_sec"] + rec["fit_time_sec"]
 
 
-def test_run_nested_cv_logs_confusion_matrix_and_predictions_to_wandb_offline(
-    tmp_path, monkeypatch
-):
-    """use_wandb=True should not crash and should exercise the confusion-matrix
-    image + predictions table logging path, using WANDB_MODE=offline so no
-    network/credentials are required."""
-    monkeypatch.setenv("WANDB_MODE", "offline")
-    monkeypatch.setenv("WANDB_DIR", str(tmp_path))
-    monkeypatch.chdir(tmp_path)
-
-    X, y = _toy_xy("binary")
-    folds = data.make_outer_folds(y, n_splits=2, seed=42)
-    records = run.run_nested_cv(
-        X, y, task="binary", name="random_forest",
-        folds=folds, n_trials=1, seed=42, use_wandb=True,
-        dataset_name="unit-test-dataset",
+def test_run_nested_cv_logs_to_mlflow(tmp_path):
+    import numpy as np, mlflow
+    from classical.run import run_nested_cv
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(60, 6)); y = (X[:, 0] > 0).astype(int)
+    folds = [(np.arange(0, 45), np.arange(45, 60))]
+    uri = f"file:{tmp_path / 'mlruns'}"
+    run_nested_cv(
+        X, y, "binary", "random_forest", folds, n_trials=2, seed=0,
+        use_mlflow=True, tracking_uri=uri, inner_splits=2, n_jobs=1,
+        extra_params={"framework": "classical", "n_components": 6},
     )
-    assert len(records) == 2
-    # offline mode still writes local run directories under wandb/
-    assert (tmp_path / "wandb").exists()
+    mlflow.set_tracking_uri(uri)
+    exp = mlflow.get_experiment_by_name("qtaggerplus")
+    runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+    assert len(runs) == 1
+    assert runs.iloc[0]["params.framework"] == "classical"
+    assert "metrics.fit_time_sec" in runs.columns

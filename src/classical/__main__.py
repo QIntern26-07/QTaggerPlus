@@ -39,7 +39,13 @@ def build_parser() -> argparse.ArgumentParser:
              "programs for RAM/CPU on this machine.",
     )
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--wandb", action="store_true")
+    p.add_argument("--mlflow", action="store_true")
+    p.add_argument("--tracking-uri", default=None)
+    p.add_argument(
+        "--n-components", type=int, default=None,
+        help="PCA target dimensionality (aligns with quantum qubit count). "
+             "Omit to disable PCA.",
+    )
     p.add_argument("--out", default="results/cic/metrics.csv")
     p.add_argument("--predictions-dir", default="results/cic")
     return p
@@ -61,9 +67,12 @@ def main(argv=None) -> int:
         for name in args.models:
             records = run.run_nested_cv(
                 X, y, task=task, name=name, folds=folds,
-                n_trials=args.trials, seed=args.seed, use_wandb=args.wandb,
+                n_trials=args.trials, seed=args.seed, use_mlflow=args.mlflow,
                 inner_splits=args.inner_splits, dataset_name="cic-malmem",
-                n_jobs=args.n_jobs,
+                n_jobs=args.n_jobs, tracking_uri=args.tracking_uri,
+                extra_params={"framework": "classical",
+                              "n_components": args.n_components},
+                n_components=args.n_components,
             )
             rows.append(aggregate_records(records))
             Path(args.predictions_dir).mkdir(parents=True, exist_ok=True)

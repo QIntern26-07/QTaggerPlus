@@ -8,6 +8,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from common.evaluate import auc_scores, compute_metrics, confusion_matrix_figure, timed
 from common.preprocess import build_feature_pipeline
+from common.tracking import run as mlflow_run
 from classical.models import make_model, suggest_params
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -51,6 +52,7 @@ def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed, n_j
 
 def evaluate_fold(
     name, task, X, y, train_idx, test_idx, n_trials, seed, inner_splits=3, n_jobs=-1,
+    n_components=None,
 ):
     """Tune+fit on train fold, score on test fold; return a per-fold record."""
     X = np.asarray(X, dtype=float)
@@ -58,7 +60,7 @@ def evaluate_fold(
     X_tr, X_te = X[train_idx], X[test_idx]
     y_tr, y_te = y[train_idx], y[test_idx]
 
-    pipeline = build_feature_pipeline()
+    pipeline = build_feature_pipeline(n_components=n_components, seed=seed)
     X_tr_t = pipeline.fit_transform(X_tr)  # fit on TRAIN fold only (no leakage)
     X_te_t = pipeline.transform(X_te)
 
@@ -87,51 +89,46 @@ def evaluate_fold(
 
 
 def run_nested_cv(
-    X, y, task, name, folds, n_trials=25, seed=42, use_wandb=False,
-    inner_splits=3, dataset_name="cic-malmem", n_jobs=-1,
+    X, y, task, name, folds, n_trials=25, seed=42, use_mlflow=False,
+    inner_splits=3, dataset_name="cic-malmem", n_jobs=-1, tracking_uri=None,
+    extra_params=None, n_components=None,
 ):
-    """Run every outer fold for one model x task; optionally log each to W&B."""
+    """Run every outer fold for one model x task; optionally log each to MLflow."""
     records = []
     for i, (train_idx, test_idx) in enumerate(folds):
         logger.info(f"[{name}/{task}] outer fold {i + 1}/{len(folds)}")
         rec = evaluate_fold(
             name, task, X, y, train_idx, test_idx, n_trials, seed,
-            inner_splits=inner_splits, n_jobs=n_jobs,
+            inner_splits=inner_splits, n_jobs=n_jobs, n_components=n_components,
         )
         rec["fold"] = i
         records.append(rec)
-        if use_wandb:
-            _log_fold_to_wandb(rec, dataset_name=dataset_name)
+        if use_mlflow:
+            _log_fold_to_mlflow(
+                rec, dataset_name=dataset_name, n_jobs=n_jobs,
+                tracking_uri=tracking_uri, extra_params=extra_params or {},
+            )
     return records
 
 
-def _log_fold_to_wandb(rec, dataset_name="cic-malmem"):
-    """One W&B run per model x task x fold; imported lazily so tests stay offline."""
-    import wandb
-
-    run = wandb.init(
-        project="qtaggerplus-classical",
-        group=f"{dataset_name}-{rec['task']}",
-        name=f"{rec['model']}-fold{rec['fold']}",
-        config={"model": rec["model"], "task": rec["task"],
-                "dataset": dataset_name, **rec["best_params"]},
-        reinit=True,
-    )
-    wandb.log({
-        **rec["metrics"],
-        "fit_time_sec": rec["fit_time_sec"],
-        "tune_time_sec": rec["tune_time_sec"],
-        "inference_time_sec": rec["inference_time_sec"],
-    })
-
-    fig = confusion_matrix_figure(rec["y_true"], rec["y_pred"])
-    wandb.log({"confusion_matrix": wandb.Image(fig)})
+def _log_fold_to_mlflow(rec, dataset_name, n_jobs, tracking_uri, extra_params):
+    """One MLflow run per model x task x fold."""
     import matplotlib.pyplot as plt
-    plt.close(fig)
 
-    table = wandb.Table(columns=["test_idx", "y_true", "y_pred"])
-    for idx, yt, yp in zip(rec["test_idx"], rec["y_true"], rec["y_pred"]):
-        table.add_data(int(idx), int(yt), int(yp))
-    wandb.log({"predictions": table})
-
-    run.finish()
+    params = {
+        "model": rec["model"], "task": rec["task"], "dataset": dataset_name,
+        "n_jobs": n_jobs, **extra_params, **rec["best_params"],
+    }
+    with mlflow_run(
+        "qtaggerplus", f"{rec['model']}-{rec['task']}-fold{rec['fold']}",
+        params, tracking_uri=tracking_uri,
+    ) as log:
+        log.log_metrics({
+            **rec["metrics"],
+            "fit_time_sec": rec["fit_time_sec"],
+            "tune_time_sec": rec["tune_time_sec"],
+            "inference_time_sec": rec["inference_time_sec"],
+        })
+        fig = confusion_matrix_figure(rec["y_true"], rec["y_pred"])
+        log.log_figure(fig, "confusion_matrix.png")
+        plt.close(fig)
