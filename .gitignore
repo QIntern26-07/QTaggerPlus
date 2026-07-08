@@ -285,3 +285,9 @@ data/*
 !data/splits/**
 results/cic/*
 !results/cic/.gitkeep
+
+# W&B local run cache/logs (synced to cloud, not source)
+wandb/
+
+# Agent-tooling working docs (brainstorming spec/plan artifacts, not deliverables)
+docs/superpowers/
