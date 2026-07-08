@@ -41,6 +41,21 @@ def test_test_gram_is_cached_between_predict_and_decision_function():
     assert m.kernel_evals == evals_after_predict
 
 
+def test_test_gram_is_cached_between_predict_and_decision_function_float32():
+    # Regression test: np.asarray(X, dtype=float) allocates a NEW array when X
+    # isn't already float64 (e.g. float32), so an id()-after-conversion cache
+    # key would miss even though the caller passed the same object to
+    # predict() then decision_function(). The cache must key off the caller's
+    # original object identity, captured before any dtype conversion.
+    X, y = _toy()
+    m = QSVM(encoding="angle", n_components=2).fit(X, y)
+    Xte = X[:5].astype(np.float32)
+    m.predict(Xte)
+    evals_after_predict = m.kernel_evals
+    m.decision_function(Xte)  # same object -> should reuse cached gram
+    assert m.kernel_evals == evals_after_predict
+
+
 def test_multiclass_task_fits():
     rng = np.random.default_rng(1)
     X = rng.uniform(0, np.pi, size=(30, 2))

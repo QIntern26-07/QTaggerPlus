@@ -53,7 +53,7 @@ class QSVM:
             decision_function_shape="ovr", random_state=seed,
         )
         self._X_train = None
-        self._cache_id = None
+        self._cache_X = None
         self._cache_gram = None
         self.kernel_build_train_s = 0.0
         self.kernel_build_test_s = 0.0
@@ -99,6 +99,7 @@ class QSVM:
 
     def fit(self, X, y):
         self._X_train = np.asarray(X, dtype=float)
+        self._warmup(self._X_train[0])
         t0 = time.perf_counter()
         K = self._gram_sym(self._X_train)
         self.kernel_build_train_s = time.perf_counter() - t0
@@ -110,13 +111,13 @@ class QSVM:
         return self
 
     def _test_gram(self, X):
-        X = np.asarray(X, dtype=float)
-        if id(X) == self._cache_id and self._cache_gram is not None:
+        if X is self._cache_X and self._cache_gram is not None:
             return self._cache_gram
+        X_arr = np.asarray(X, dtype=float)
         t0 = time.perf_counter()
-        K = self.gram(X, self._X_train)
+        K = self.gram(X_arr, self._X_train)
         self.kernel_build_test_s = time.perf_counter() - t0
-        self._cache_id = id(X)
+        self._cache_X = X
         self._cache_gram = K
         return K
 
