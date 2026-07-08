@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -39,13 +40,25 @@ class DropCorrelated(BaseEstimator, TransformerMixin):
 
 
 def build_feature_pipeline(
-    corr_threshold: float = 0.95, variance_threshold: float = 0.0
+    corr_threshold: float = 0.95,
+    variance_threshold: float = 0.0,
+    n_components: int | None = None,
+    seed: int = 42,
 ) -> Pipeline:
-    """Unfitted pipeline: variance filter -> correlation filter -> standardize."""
-    return Pipeline(
-        steps=[
-            ("variance", VarianceThreshold(threshold=variance_threshold)),
-            ("decorrelate", DropCorrelated(threshold=corr_threshold)),
-            ("scale", StandardScaler()),
-        ]
-    )
+    """Unfitted pipeline: variance filter -> correlation filter -> standardize
+    -> optional PCA.
+
+    When `n_components` is an int, a final PCA compresses the standardized
+    features to that many dimensions. This is the single alignment point between
+    classical and quantum models: both consume this pipeline's output, so the
+    classical feature count equals the quantum qubit budget. PCA is fit inside
+    the train fold only (see run.evaluate_fold), so it stays leakage-safe.
+    """
+    steps = [
+        ("variance", VarianceThreshold(threshold=variance_threshold)),
+        ("decorrelate", DropCorrelated(threshold=corr_threshold)),
+        ("scale", StandardScaler()),
+    ]
+    if n_components is not None:
+        steps.append(("pca", PCA(n_components=n_components, random_state=seed)))
+    return Pipeline(steps=steps)

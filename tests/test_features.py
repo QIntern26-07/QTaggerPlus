@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.pipeline import Pipeline
+
 from common.preprocess import DropCorrelated, build_feature_pipeline
 
 
@@ -44,3 +46,21 @@ def test_pipeline_output_is_standardized():
     # after StandardScaler, remaining columns have ~0 mean, ~1 std
     assert np.allclose(Xt.mean(axis=0), 0, atol=1e-6)
     assert np.allclose(Xt.std(axis=0), 1, atol=1e-6)
+
+
+def test_pca_off_by_default_no_pca_step():
+    pipe = build_feature_pipeline()
+    assert "pca" not in dict(pipe.steps)
+
+
+def test_pca_on_reduces_to_n_components():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(60, 10))
+    pipe = build_feature_pipeline(n_components=3, seed=0)
+    Xt = pipe.fit_transform(X)
+    assert Xt.shape == (60, 3)
+
+
+def test_pca_is_last_step():
+    pipe = build_feature_pipeline(n_components=2)
+    assert pipe.steps[-1][0] == "pca"
