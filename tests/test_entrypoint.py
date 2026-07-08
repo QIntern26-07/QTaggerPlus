@@ -1,6 +1,6 @@
 import numpy as np
 
-from classical import data
+from common import data
 from classical.__main__ import aggregate_records
 
 

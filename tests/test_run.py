@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification
-from classical import data, run
+from common import data
+from classical import run
 
 
 def _toy_xy(task):

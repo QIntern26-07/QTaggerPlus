@@ -1,5 +1,5 @@
 import numpy as np
-from classical import evaluate
+from common import evaluate
 
 
 def test_compute_metrics_perfect_binary():

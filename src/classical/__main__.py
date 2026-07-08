@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from classical import data, run
+from common import data
+from classical import run
 from classical.models import MODEL_NAMES
 
 

@@ -6,8 +6,8 @@ import optuna
 from loguru import logger
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-from classical.evaluate import compute_metrics, confusion_matrix_figure, timed
-from classical.features import build_feature_pipeline
+from common.evaluate import compute_metrics, confusion_matrix_figure, timed
+from common.preprocess import build_feature_pipeline
 from classical.models import make_model, suggest_params
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)

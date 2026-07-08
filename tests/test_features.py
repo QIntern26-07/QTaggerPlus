@@ -1,5 +1,5 @@
 import numpy as np
-from classical.features import DropCorrelated, build_feature_pipeline
+from common.preprocess import DropCorrelated, build_feature_pipeline
 
 
 def test_drop_correlated_removes_duplicate_column():
