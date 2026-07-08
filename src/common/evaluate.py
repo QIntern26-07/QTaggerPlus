@@ -51,3 +51,29 @@ def timed(fn: Callable, *args, **kwargs) -> tuple[Any, float]:
     start = time.perf_counter()
     result = fn(*args, **kwargs)
     return result, time.perf_counter() - start
+
+
+def softmax(S, axis: int = 1):
+    """Numerically stable softmax."""
+    S = np.asarray(S, dtype=float)
+    S = S - S.max(axis=axis, keepdims=True)
+    e = np.exp(S)
+    return e / e.sum(axis=axis, keepdims=True)
+
+
+def auc_scores(model, X, task: str):
+    """Scores for roc_auc_score, honest about model type.
+
+    Trees expose predict_proba; SVM/QSVM (probability disabled) expose only
+    decision_function. sklearn SVC(probability=False) makes hasattr(model,
+    "predict_proba") return False, so this branch is reliable. Multiclass SVM
+    decision values are softmaxed so rows sum to 1, which roc_auc_score requires
+    for multi_class="ovr".
+    """
+    if hasattr(model, "predict_proba"):
+        proba = model.predict_proba(X)
+        return proba[:, 1] if task == "binary" else proba
+    scores = model.decision_function(X)
+    if task == "binary":
+        return scores
+    return softmax(scores, axis=1)
