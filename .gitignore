@@ -279,19 +279,21 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# DATASETS
-data/raw/
-data/processed/
+# Datasets (raw data gitignored; committed fold indices are the exception)
+data/*
+!data/splits/
+!data/splits/**
+results/cic/*
+!results/cic/.gitkeep
 
-# Common dataset files
+# Common dataset archive files
 *.zip
 *.7z
 *.tar
 *.gz
 
-# Python
-__pycache__/
-*.pyc
+# W&B local run cache/logs (synced to cloud, not source)
+wandb/
 
-# Colab Hidden Files
-.ipynb_checkpoints/
+# Agent-tooling working docs (brainstorming spec/plan artifacts, not deliverables)
+docs/superpowers/
