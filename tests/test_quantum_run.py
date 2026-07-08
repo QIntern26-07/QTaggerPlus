@@ -1,0 +1,38 @@
+import numpy as np
+from quantum.run import run_quantum_cv, evaluate_fold_quantum, DEFAULT_GRID
+
+
+def _data(n=40, d=5, seed=0):
+    rng = np.random.default_rng(seed)
+    X = rng.normal(size=(n, d))
+    y = (X[:, 0] > 0).astype(int)
+    return X, y
+
+
+def test_evaluate_fold_quantum_returns_timing_and_metrics():
+    X, y = _data()
+    tr, te = np.arange(0, 30), np.arange(30, 40)
+    grid = {"encoding": ["angle"], "bandwidth": [None], "C": [1.0],
+            "class_weight": [None]}
+    rec = evaluate_fold_quantum(X, y, "binary", tr, te, n_components=1,
+                                grid=grid, seed=0)
+    for k in ("fit_time_sec", "tune_time_sec", "inference_time_sec",
+              "kernel_build_train_s", "kernel_build_test_s"):
+        assert k in rec
+    assert "f1_macro" in rec["metrics"]
+
+
+def test_run_quantum_cv_logs_to_mlflow(tmp_path):
+    import mlflow
+    X, y = _data()
+    folds = [(np.arange(0, 30), np.arange(30, 40))]
+    uri = f"file:{tmp_path / 'mlruns'}"
+    grid = {"encoding": ["angle"], "bandwidth": [None], "C": [1.0],
+            "class_weight": [None]}
+    run_quantum_cv(X, y, "binary", folds, n_components=1, grid=grid, seed=0,
+                   use_mlflow=True, tracking_uri=uri)
+    mlflow.set_tracking_uri(uri)
+    exp = mlflow.get_experiment_by_name("qtaggerplus")
+    runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+    assert len(runs) == 1
+    assert runs.iloc[0]["params.framework"] == "quantum"
