@@ -6,7 +6,7 @@
 * **Team**: C
 * **Focus**: Quantum Machine Learning
 * **Members**:
-    * Elizabeth
+    * Elizabeth Quah
     * Zhongyuan Ge
     * Duy Anh
 

@@ -286,6 +286,12 @@ data/*
 results/cic/*
 !results/cic/.gitkeep
 
+# Common dataset archive files
+*.zip
+*.7z
+*.tar
+*.gz
+
 # W&B local run cache/logs (synced to cloud, not source)
 wandb/
 
