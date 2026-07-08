@@ -48,6 +48,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--out", default="results/cic/metrics.csv")
     p.add_argument("--predictions-dir", default="results/cic")
+    p.add_argument(
+        "--load-quantum-splits", action="store_true",
+        help="run on the exact row subsample and folds a prior quantum run "
+             "persisted, instead of the full dataset with freshly computed "
+             "folds — required for a real classical-vs-quantum comparison, "
+             "since QSVM's O(n^2) kernel cost makes full-dataset quantum runs "
+             "infeasible.",
+    )
     return p
 
 
@@ -56,14 +64,27 @@ def main(argv=None) -> int:
     logger.add("run.log", rotation="10 MB")
     df = data.load_cic_malmem(args.csv)
     X, y_bin, y_multi = data.build_xy(df)
+
+    if args.load_quantum_splits:
+        sample_idx = data.load_sample_idx("data/splits/quantum_sample_idx.json")
+        X = X.iloc[sample_idx].reset_index(drop=True)
+        y_bin = y_bin.iloc[sample_idx].reset_index(drop=True)
+        y_multi = y_multi.iloc[sample_idx].reset_index(drop=True)
+
     targets = {"binary": y_bin, "multiclass": y_multi}
 
     rows = []
     for task in args.tasks:
         y = targets[task]
-        folds = data.make_outer_folds(y, n_splits=args.folds, seed=args.seed)
         Path("data/splits").mkdir(parents=True, exist_ok=True)
-        data.save_folds(folds, f"data/splits/cic_{task}_folds.json")
+        if args.load_quantum_splits:
+            # Reuse the exact folds the quantum run computed over this same
+            # subsample, instead of freshly computing (and silently
+            # overwriting them with) different folds.
+            folds = data.load_folds(f"data/splits/cic_{task}_quantum_folds.json")
+        else:
+            folds = data.make_outer_folds(y, n_splits=args.folds, seed=args.seed)
+            data.save_folds(folds, f"data/splits/cic_{task}_folds.json")
         for name in args.models:
             records = run.run_nested_cv(
                 X, y, task=task, name=name, folds=folds,
