@@ -34,8 +34,12 @@ def make_model(name: str, params: dict, task: str, seed: int = 42, n_jobs: int =
             verbose=-1, **params,
         )
     if name == "svm":
+        # probability estimation is off by default in sklearn; leaving the
+        # kwarg unset (rather than passing probability=False) avoids the
+        # FutureWarning sklearn now emits whenever `probability` is passed
+        # explicitly at all, regardless of value.
         return SVC(
-            random_state=seed, probability=False,
+            random_state=seed,
             decision_function_shape="ovr", **params,
         )
     raise ValueError(f"unknown model name: {name}")

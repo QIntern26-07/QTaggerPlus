@@ -9,11 +9,6 @@ def test_make_model_returns_fittable_estimator(name):
     assert hasattr(est, "fit") and hasattr(est, "predict")
 
 
-def test_svm_has_probability_disabled():
-    est = models.make_model("svm", params={}, task="binary")
-    assert est.get_params()["probability"] is False
-
-
 def test_svm_search_space_has_gamma_float_and_class_weight():
     study = optuna.create_study()
     captured = {}
@@ -29,7 +24,9 @@ def test_svm_search_space_has_gamma_float_and_class_weight():
 
 def test_svm_model_has_no_predict_proba():
     m = models.make_model("svm", {"C": 1.0, "gamma": 0.1}, "binary")
-    # SVC(probability=False) hides predict_proba via available_if
+    # probability estimation defaults to off in sklearn's SVC; predict_proba
+    # stays hidden via available_if without needing to pass probability=False
+    # explicitly (see models.make_model's comment on the FutureWarning this avoids)
     assert not hasattr(m, "predict_proba")
     assert m.decision_function_shape == "ovr"
 

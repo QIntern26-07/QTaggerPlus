@@ -1,6 +1,8 @@
 """Nested-CV orchestration: Optuna tuning inside outer stratified folds."""
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import optuna
 from loguru import logger
@@ -12,6 +14,17 @@ from common.tracking import run as mlflow_run
 from classical.models import make_model, suggest_params
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+# LightGBM's sklearn wrapper retains feature-name metadata from one CV fit and
+# warns when a later predict() call (inside the same Optuna inner-CV loop)
+# gets a plain numpy array — reproduces even with pure-numpy input with no
+# reference to this pipeline, so it's an upstream LightGBM/sklearn quirk, not
+# something this code is doing wrong. Cosmetic-only suppression.
+warnings.filterwarnings(
+    "ignore",
+    message="X does not have valid feature names",
+    category=UserWarning,
+)
 
 
 def tune_and_fit(name, task, X_train, y_train, n_trials, inner_splits, seed, n_jobs=-1):
