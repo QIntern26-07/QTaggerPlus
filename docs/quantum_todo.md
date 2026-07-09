@@ -28,6 +28,17 @@ quantum work is complete -- items here are known-open, not forgotten.
   contributor.** Only QSVM exists in `src/quantum/`. Flag to the team/mentors
   that Week 2's "extend the existing binary QSVM/VQC architecture toward
   multi-class" (Day 2) is QSVM-only unless someone else picks this up.
+- [ ] **Multiclass QSVM run — not yet done.** Everything run so far (Jul 9,
+  `docs/reports/w2_Jul-9_experiments.md`) is `task=binary` only. Day 2's
+  "extend the existing binary QSVM/VQC architecture toward multi-class
+  (one-vs-rest or native multi-class circuit design)" and Day 3's "train the
+  multi-class QSVM/VQC on the validated minimal representative subset and
+  record first-pass results" are both still open. Note: `QSVM` already
+  supports `task="multiclass"` via `SVC(decision_function_shape="ovr")` (see
+  `tests/test_qsvm.py::test_multiclass_task_fits`) — the CLI just hasn't been
+  run with `--tasks multiclass` against CIC-MalMem's real multiclass labels
+  yet. Do this before claiming Day 2/3 multiclass work complete.
+
 ## Decided (no action needed, recorded for reference)
 
 - Evaluation protocol skeleton for Team A's behavioral dataset drafted:
