@@ -11,6 +11,12 @@ Design choices for honest timing:
 - probability=False; AUC uses decision_function upstream (common.evaluate).
 - One warmup kernel eval before any timed Gram build, so lightning.qubit graph
   construction does not pollute small-n timings.
+- Gram pairs are evaluated via QNode parameter broadcasting in chunks of
+  `batch_size`, not a Python double loop: one QNode dispatch per chunk instead
+  of one per pair, which is where the per-call Python/tape-construction
+  overhead was concentrated (day1_quantum_profiling_report.md measured ~O(n^2)
+  wall time on the unbatched loop; batching cuts the per-pair constant, not
+  the O(n^2) pair count itself).
 """
 from __future__ import annotations
 
@@ -33,13 +39,15 @@ def _resolve_device(preferred: str = "lightning.qubit") -> str:
 
 class QSVM:
     def __init__(self, encoding="angle", n_components=None, bandwidth=None,
-                 C=1.0, class_weight=None, task="binary", device=None, seed=42):
+                 C=1.0, class_weight=None, task="binary", device=None, seed=42,
+                 batch_size=4096):
         self.encoding = encoding
         self.n_components = n_components
         self.C = C
         self.class_weight = class_weight
         self.task = task
         self.seed = seed
+        self.batch_size = batch_size
         n_features = n_components if n_components is not None else 1
         self.n_qubits = n_qubits_for(encoding, n_features)
         self.bandwidth = (
@@ -73,16 +81,32 @@ class QSVM:
             _ = self._kernel(x, x)
             self._warm = True
 
+    def _kernel_pairs(self, X1, X2):
+        """Evaluate kernel[0] for paired rows of X1, X2 via broadcasting.
+
+        One QNode dispatch per chunk of `batch_size` pairs instead of one
+        dispatch per pair, so the Python/tape-construction overhead is paid
+        len(X1) / batch_size times rather than len(X1) times.
+        """
+        n = len(X1)
+        out = np.empty(n)
+        for start in range(0, n, self.batch_size):
+            end = min(start + self.batch_size, n)
+            probs = self._kernel(X1[start:end], X2[start:end])
+            out[start:end] = np.asarray(probs)[:, 0]
+        self.kernel_evals += n
+        return out
+
     def gram(self, A, B):
         """Full (non-symmetric) Gram matrix between rows of A and B."""
         A = np.asarray(A, dtype=float)
         B = np.asarray(B, dtype=float)
         self._warmup(A[0])
-        K = np.empty((len(A), len(B)))
-        for i in range(len(A)):
-            for j in range(len(B)):
-                K[i, j] = float(self._kernel(A[i], B[j])[0])
-                self.kernel_evals += 1
+        ia, ib = np.meshgrid(np.arange(len(A)), np.arange(len(B)), indexing="ij")
+        ia, ib = ia.ravel(), ib.ravel()
+        K = np.zeros((len(A), len(B)))
+        if ia.size:
+            K[:, :] = self._kernel_pairs(A[ia], B[ib]).reshape(len(A), len(B))
         return K
 
     def _gram_sym(self, A):
@@ -90,11 +114,11 @@ class QSVM:
         self._warmup(A[0])
         n = len(A)
         K = np.eye(n)
-        for i in range(n):
-            for j in range(i + 1, n):
-                v = float(self._kernel(A[i], A[j])[0])
-                K[i, j] = K[j, i] = v
-                self.kernel_evals += 1
+        iu, ju = np.triu_indices(n, k=1)
+        if iu.size:
+            vals = self._kernel_pairs(A[iu], A[ju])
+            K[iu, ju] = vals
+            K[ju, iu] = vals
         return K
 
     def fit(self, X, y):

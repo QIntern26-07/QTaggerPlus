@@ -62,3 +62,43 @@ def test_multiclass_task_fits():
     y = rng.integers(0, 3, size=30)
     m = QSVM(encoding="angle", n_components=2, task="multiclass").fit(X, y)
     assert m.decision_function(X).shape == (30, 3)
+
+
+def test_gram_matches_across_batch_sizes():
+    # Batched execution (day1_quantum_profiling_report.md) chunks pairs by
+    # batch_size instead of one Python-loop iteration per pair. Chunking must
+    # not change the result: force multiple chunks (batch_size=3) against a
+    # single-shot batch (batch_size large) and require identical Grams.
+    X, _ = _toy(n=10)
+    m_chunked = QSVM(encoding="angle", n_components=2, batch_size=3)
+    m_single = QSVM(encoding="angle", n_components=2, batch_size=10_000)
+    K_chunked = m_chunked.gram(X, X)
+    K_single = m_single.gram(X, X)
+    assert np.allclose(K_chunked, K_single, atol=1e-10)
+
+
+def test_gram_sym_matches_across_batch_sizes():
+    X, _ = _toy(n=10)
+    m_chunked = QSVM(encoding="angle", n_components=2, batch_size=3)
+    m_single = QSVM(encoding="angle", n_components=2, batch_size=10_000)
+    K_chunked = m_chunked._gram_sym(X)
+    K_single = m_single._gram_sym(X)
+    assert np.allclose(K_chunked, K_single, atol=1e-10)
+
+
+def test_kernel_evals_counts_pairs_regardless_of_batch_size():
+    # kernel_evals is used as an MLflow metric (quantum/run.py); it should
+    # count logical pairs, not QNode dispatch calls, so it stays comparable
+    # across batch_size choices.
+    X, _ = _toy(n=8)
+    m = QSVM(encoding="angle", n_components=2, batch_size=3)
+    m._gram_sym(X)
+    n = len(X)
+    assert m.kernel_evals == n * (n - 1) // 2
+
+
+def test_gram_single_row_does_not_crash():
+    X, _ = _toy(n=1)
+    m = QSVM(encoding="angle", n_components=2)
+    K = m.gram(X, X)
+    assert K.shape == (1, 1)
