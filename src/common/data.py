@@ -60,6 +60,19 @@ def load_folds(path: str):
     ]
 
 
+def save_sample_idx(sample_idx, path: str) -> None:
+    """Persist a row-index subsample as JSON so another framework can reload it."""
+    with open(path, "w") as fh:
+        json.dump(np.asarray(sample_idx).tolist(), fh)
+
+
+def load_sample_idx(path: str):
+    """Load a subsample saved by save_sample_idx back into a numpy index array."""
+    with open(path) as fh:
+        payload = json.load(fh)
+    return np.array(payload)
+
+
 def save_predictions(records, path: str) -> None:
     """Persist per-fold test_idx/y_true/y_pred for one model x task run.
 

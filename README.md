@@ -20,7 +20,7 @@ QTaggerPlus/
 │   ├── models.py           # model factories (RF/XGBoost/LightGBM/SVM) + Optuna search spaces
 │   ├── evaluate.py         # metrics, confusion matrix, timing
 │   ├── compare.py          # paired significance tests (t-test / Wilcoxon / McNemar)
-│   ├── run.py              # nested-CV orchestration + W&B logging
+│   ├── run.py              # nested-CV orchestration + MLflow logging
 │   └── __main__.py         # CLI entrypoint (`python -m classical`)
 ├── scripts/
 │   └── download_cic.py     # Kaggle dataset download helper
@@ -62,21 +62,21 @@ uv run python scripts/download_cic.py
 This fetches `Obfuscated-MalMem2022.csv` into `data/cic_malmem/` (gitignored — raw data
 is never committed).
 
-### 3. (Optional) Log in to Weights & Biases
+### 3. (Optional) View results locally with MLflow
 
-Only needed if you pass `--wandb` to log per-model x task x fold runs:
+Only needed if you pass `--mlflow` to log per-model x task x fold runs:
 
 ```sh
-wandb login
+uv run mlflow ui   # then open http://127.0.0.1:5000
 ```
 
 ### 4. Run the baseline
 
 Full run (all four models, both binary and multiclass tasks, 5-fold nested CV,
-Optuna tuning, logged to W&B):
+Optuna tuning, logged to MLflow):
 
 ```sh
-uv run python -m classical --wandb
+uv run python -m classical --mlflow
 ```
 
 Fast smoke test (one model, one task, fewer folds/trials — useful for verifying the
@@ -113,7 +113,8 @@ the real differentiator. Tree models cluster together; SVM (one-vs-one over
 Full metrics, per-model analysis, methodology rationale, and a writeup of a
 memory-exhaustion incident hit (and fixed) during a real multiclass run are in
 [`docs/reports/week1_cic_malmem_classical_baseline_report.md`](docs/reports/week1_cic_malmem_classical_baseline_report.md).
-Live per-fold results: https://wandb.ai/dduyanhhoang-fpt-university/qtaggerplus-classical
+Live per-fold results: run `uv run mlflow ui` locally and open
+http://127.0.0.1:5000.
 
 ### 6. Outputs
 
@@ -122,3 +123,34 @@ Live per-fold results: https://wandb.ai/dduyanhhoang-fpt-university/qtaggerplus-
 * `data/splits/*.json` — the outer CV fold indices, **committed** so the quantum
   team can reuse the exact same train/test splits for a fair comparison.
 * `run.log` — rotating log file (loguru) capturing the full run.
+
+## Quantum QSVM (aligned with classical via PCA)
+
+Time a single 1-qubit run before committing to a sweep:
+```bash
+uv run python -m quantum --probe --n-components 1 --max-samples 120 --encodings angle iqp
+```
+
+QSVM's kernel cost is O(n^2), so a real quantum run subsamples the ~58K-row
+dataset down to `--max-samples` rows (stratified). To make the classical
+comparison fair, **run quantum first** — it persists the exact row subsample
+it used (`data/splits/quantum_sample_idx.json`) plus the per-task outer folds
+computed over that subsample (`data/splits/cic_<task>_quantum_folds.json`) —
+then **run classical with `--load-quantum-splits`** to reuse those identical
+rows and folds instead of the full dataset:
+
+Step 1 — run the tuned QSVM CV and log to MLflow (also persists the subsample + folds):
+```bash
+uv run python -m quantum --tasks binary --n-components 1 --folds 5 --mlflow
+```
+
+Step 2 — run the classical baseline on the *same* rows, folds, and PCA
+dimensionality for a true apples-to-apples comparison:
+```bash
+uv run python -m classical --tasks binary --n-components 1 --load-quantum-splits --mlflow
+```
+
+View results:
+```bash
+uv run mlflow ui   # then open http://127.0.0.1:5000
+```

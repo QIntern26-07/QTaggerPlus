@@ -34,8 +34,13 @@ def make_model(name: str, params: dict, task: str, seed: int = 42, n_jobs: int =
             verbose=-1, **params,
         )
     if name == "svm":
+        # probability estimation is off by default in sklearn; leaving the
+        # kwarg unset (rather than passing probability=False) avoids the
+        # FutureWarning sklearn now emits whenever `probability` is passed
+        # explicitly at all, regardless of value.
         return SVC(
-            random_state=seed, probability=True, class_weight="balanced", **params
+            random_state=seed,
+            decision_function_shape="ovr", **params,
         )
     raise ValueError(f"unknown model name: {name}")
 
@@ -70,7 +75,10 @@ def suggest_params(name: str, trial: optuna.Trial) -> dict:
     if name == "svm":
         return {
             "C": trial.suggest_float("C", 1e-2, 1e2, log=True),
-            "gamma": trial.suggest_categorical("gamma", ["scale", "auto"]),
-            "kernel": trial.suggest_categorical("kernel", ["rbf"]),
+            "gamma": trial.suggest_float("gamma", 1e-4, 1e1, log=True),
+            "class_weight": trial.suggest_categorical(
+                "class_weight", [None, "balanced"]
+            ),
+            "kernel": "rbf",
         }
     raise ValueError(f"unknown model name: {name}")

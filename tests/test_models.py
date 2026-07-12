@@ -9,9 +9,26 @@ def test_make_model_returns_fittable_estimator(name):
     assert hasattr(est, "fit") and hasattr(est, "predict")
 
 
-def test_svm_has_probability_enabled():
-    est = models.make_model("svm", params={}, task="binary")
-    assert est.get_params()["probability"] is True
+def test_svm_search_space_has_gamma_float_and_class_weight():
+    study = optuna.create_study()
+    captured = {}
+
+    def objective(trial):
+        captured.update(models.suggest_params("svm", trial))
+        return 0.0
+
+    study.optimize(objective, n_trials=1)
+    assert "gamma" in captured and isinstance(captured["gamma"], float)
+    assert "class_weight" in captured
+
+
+def test_svm_model_has_no_predict_proba():
+    m = models.make_model("svm", {"C": 1.0, "gamma": 0.1}, "binary")
+    # probability estimation defaults to off in sklearn's SVC; predict_proba
+    # stays hidden via available_if without needing to pass probability=False
+    # explicitly (see models.make_model's comment on the FutureWarning this avoids)
+    assert not hasattr(m, "predict_proba")
+    assert m.decision_function_shape == "ovr"
 
 
 def test_xgboost_objective_by_task():

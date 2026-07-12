@@ -297,3 +297,6 @@ wandb/
 
 # Agent-tooling working docs (brainstorming spec/plan artifacts, not deliverables)
 docs/superpowers/
+
+# MLflow run tracking directory
+mlruns/

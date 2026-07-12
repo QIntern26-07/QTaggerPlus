@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from classical import data
+from common import data
 
 
 def _toy_df():
