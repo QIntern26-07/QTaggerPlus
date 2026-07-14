@@ -1,0 +1,45 @@
+2026-07-14 21:49:27.849 | INFO     | classical.run:run_nested_cv:140 - [random_forest/multiclass] outer fold 1/5
+2026-07-14 21:49:58.255 | INFO     | classical.run:evaluate_fold:97 - [random_forest/multiclass] fold done: f1_macro=0.2342
+2026-07-14 21:49:58.573 | INFO     | classical.run:run_nested_cv:140 - [random_forest/multiclass] outer fold 2/5
+2026-07-14 21:50:13.615 | INFO     | classical.run:evaluate_fold:97 - [random_forest/multiclass] fold done: f1_macro=0.1894
+2026-07-14 21:50:13.899 | INFO     | classical.run:run_nested_cv:140 - [random_forest/multiclass] outer fold 3/5
+2026-07-14 21:50:31.244 | INFO     | classical.run:evaluate_fold:97 - [random_forest/multiclass] fold done: f1_macro=0.1732
+2026-07-14 21:50:31.634 | INFO     | classical.run:run_nested_cv:140 - [random_forest/multiclass] outer fold 4/5
+2026-07-14 21:50:50.757 | INFO     | classical.run:evaluate_fold:97 - [random_forest/multiclass] fold done: f1_macro=0.1801
+2026-07-14 21:50:51.035 | INFO     | classical.run:run_nested_cv:140 - [random_forest/multiclass] outer fold 5/5
+2026-07-14 21:51:04.585 | INFO     | classical.run:evaluate_fold:97 - [random_forest/multiclass] fold done: f1_macro=0.1973
+2026-07-14 21:51:04.912 | INFO     | __main__:main:98 - wrote per-fold predictions to results/cic/random_forest_multiclass_predictions.npz
+2026-07-14 21:51:04.937 | INFO     | classical.run:run_nested_cv:140 - [xgboost/multiclass] outer fold 1/5
+2026-07-14 21:51:45.852 | INFO     | classical.run:evaluate_fold:97 - [xgboost/multiclass] fold done: f1_macro=0.2225
+2026-07-14 21:51:46.263 | INFO     | classical.run:run_nested_cv:140 - [xgboost/multiclass] outer fold 2/5
+2026-07-14 21:52:23.080 | INFO     | classical.run:evaluate_fold:97 - [xgboost/multiclass] fold done: f1_macro=0.2168
+2026-07-14 21:52:23.493 | INFO     | classical.run:run_nested_cv:140 - [xgboost/multiclass] outer fold 3/5
+2026-07-14 21:52:48.759 | INFO     | classical.run:evaluate_fold:97 - [xgboost/multiclass] fold done: f1_macro=0.1385
+2026-07-14 21:52:49.310 | INFO     | classical.run:run_nested_cv:140 - [xgboost/multiclass] outer fold 4/5
+2026-07-14 21:53:22.049 | INFO     | classical.run:evaluate_fold:97 - [xgboost/multiclass] fold done: f1_macro=0.2106
+2026-07-14 21:53:22.489 | INFO     | classical.run:run_nested_cv:140 - [xgboost/multiclass] outer fold 5/5
+2026-07-14 21:54:00.650 | INFO     | classical.run:evaluate_fold:97 - [xgboost/multiclass] fold done: f1_macro=0.2412
+2026-07-14 21:54:01.118 | INFO     | __main__:main:98 - wrote per-fold predictions to results/cic/xgboost_multiclass_predictions.npz
+2026-07-14 21:54:01.147 | INFO     | classical.run:run_nested_cv:140 - [lightgbm/multiclass] outer fold 1/5
+2026-07-14 21:54:56.250 | INFO     | classical.run:evaluate_fold:97 - [lightgbm/multiclass] fold done: f1_macro=0.1659
+2026-07-14 21:54:56.702 | INFO     | classical.run:run_nested_cv:140 - [lightgbm/multiclass] outer fold 2/5
+2026-07-14 21:55:40.733 | INFO     | classical.run:evaluate_fold:97 - [lightgbm/multiclass] fold done: f1_macro=0.2499
+2026-07-14 21:55:41.189 | INFO     | classical.run:run_nested_cv:140 - [lightgbm/multiclass] outer fold 3/5
+2026-07-14 21:56:49.825 | INFO     | classical.run:evaluate_fold:97 - [lightgbm/multiclass] fold done: f1_macro=0.1240
+2026-07-14 21:56:50.258 | INFO     | classical.run:run_nested_cv:140 - [lightgbm/multiclass] outer fold 4/5
+2026-07-14 21:57:31.810 | INFO     | classical.run:evaluate_fold:97 - [lightgbm/multiclass] fold done: f1_macro=0.2489
+2026-07-14 21:57:32.422 | INFO     | classical.run:run_nested_cv:140 - [lightgbm/multiclass] outer fold 5/5
+2026-07-14 21:58:33.540 | INFO     | classical.run:evaluate_fold:97 - [lightgbm/multiclass] fold done: f1_macro=0.2207
+2026-07-14 21:58:33.998 | INFO     | __main__:main:98 - wrote per-fold predictions to results/cic/lightgbm_multiclass_predictions.npz
+2026-07-14 21:58:34.025 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 1/5
+2026-07-14 21:58:36.181 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.1414
+2026-07-14 21:58:36.509 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 2/5
+2026-07-14 21:58:37.610 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.1719
+2026-07-14 21:58:37.934 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 3/5
+2026-07-14 21:58:39.010 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.1647
+2026-07-14 21:58:39.342 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 4/5
+2026-07-14 21:58:40.266 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.2034
+2026-07-14 21:58:40.732 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 5/5
+2026-07-14 21:58:41.498 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.1990
+2026-07-14 21:58:41.835 | INFO     | __main__:main:98 - wrote per-fold predictions to results/cic/svm_multiclass_predictions.npz
+2026-07-14 21:58:41.837 | INFO     | __main__:main:102 - wrote 4 model x task rows to results/cic/metrics.csv

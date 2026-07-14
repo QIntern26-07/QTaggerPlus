@@ -24,14 +24,24 @@ class _RunLogger:
 
 
 @contextmanager
-def run(experiment: str, run_name: str, params: dict, tracking_uri: str | None = None):
-    """Open one MLflow run, log params, yield a logger, and close on exit.
+def run(
+    experiment: str, run_name: str, params: dict, tracking_uri: str | None = None,
+    tags: dict | None = None, nested: bool = False,
+):
+    """Open one MLflow run, log params/tags, yield a logger, and close on exit.
 
-    tracking_uri defaults to a local ./mlruns file store when None.
+    tracking_uri defaults to a local ./mlruns file store when None. `nested=True`
+    starts this run as a child of the currently active run (e.g. one sweep-level
+    parent run wrapping several per-fold child runs) — requires a run to already
+    be active, per `mlflow.start_run`'s own nested-run contract. `tags`, when
+    given, lets callers group/filter runs (e.g. by sweep id) beyond exact param
+    matches.
     """
     if tracking_uri is not None:
         mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment)
-    with mlflow.start_run(run_name=run_name):
+    with mlflow.start_run(run_name=run_name, nested=nested):
         mlflow.log_params(params)
+        if tags:
+            mlflow.set_tags(tags)
         yield _RunLogger()
