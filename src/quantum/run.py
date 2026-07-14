@@ -7,13 +7,22 @@ rebuilding the kernel for every hyperparameter combination.
 """
 from __future__ import annotations
 
+import contextlib
+
 import numpy as np
 from loguru import logger
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
-from common.evaluate import auc_scores, compute_metrics, confusion_matrix_figure, timed
+from common.evaluate import (
+    aggregate_metrics,
+    auc_scores,
+    compute_metrics,
+    confusion_matrix_figure,
+    per_class_f1,
+    timed,
+)
 from common.preprocess import build_feature_pipeline
 from common.tracking import run as mlflow_run
 from quantum.encoding import default_bandwidth, n_qubits_for
@@ -100,7 +109,9 @@ def evaluate_fold_quantum(X, y, task, train_idx, test_idx, n_components, grid, s
     logger.info(f"[qsvm/{task}] fold done: f1_macro={metrics['f1_macro']:.4f}")
     return {
         "model": "qsvm", "task": task, "metrics": metrics,
+        "f1_per_class": per_class_f1(y_te, y_pred),
         "best_params": best_params,
+        "n_qubits": n_qubits,
         "fit_time_sec": fit_time, "tune_time_sec": tune_time,
         "inference_time_sec": infer_time,
         "kernel_build_train_s": model.kernel_build_train_s,
@@ -112,26 +123,48 @@ def evaluate_fold_quantum(X, y, task, train_idx, test_idx, n_components, grid, s
     }
 
 
+_TIMING_KEYS = ("fit_time_sec", "tune_time_sec", "inference_time_sec")
+
+
 def run_quantum_cv(X, y, task, folds, n_components, grid=None, seed=42,
                    use_mlflow=False, tracking_uri=None, dataset_name="cic-malmem"):
+    """Run every outer fold; optionally log each as a nested child run under one
+    sweep-level parent run that gets the mean/std aggregate across folds."""
     grid = grid or DEFAULT_GRID
     records = []
-    for i, (train_idx, test_idx) in enumerate(folds):
-        logger.info(f"[qsvm/{task}] outer fold {i + 1}/{len(folds)}")
-        rec = evaluate_fold_quantum(X, y, task, train_idx, test_idx,
-                                    n_components, grid, seed)
-        rec["fold"] = i
-        records.append(rec)
+    sweep_tag = f"qsvm-{task}-nc{n_components}"
+    parent_cm = (
+        mlflow_run(
+            "qtaggerplus", f"qsvm-{task}-nc{n_components}-sweep",
+            {"framework": "quantum", "model": "qsvm", "task": task,
+             "dataset": dataset_name, "n_components": n_components},
+            tracking_uri=tracking_uri, tags={"sweep": sweep_tag},
+        )
+        if use_mlflow else contextlib.nullcontext()
+    )
+    with parent_cm as parent_log:
+        for i, (train_idx, test_idx) in enumerate(folds):
+            logger.info(f"[qsvm/{task}] outer fold {i + 1}/{len(folds)}")
+            rec = evaluate_fold_quantum(X, y, task, train_idx, test_idx,
+                                        n_components, grid, seed)
+            rec["fold"] = i
+            records.append(rec)
+            if use_mlflow:
+                _log_quantum_fold(rec, dataset_name, n_components, tracking_uri, sweep_tag)
         if use_mlflow:
-            _log_quantum_fold(rec, dataset_name, n_components, tracking_uri)
+            combined = [
+                {**r["metrics"], **{k: r[k] for k in _TIMING_KEYS}} for r in records
+            ]
+            parent_log.log_metrics(aggregate_metrics(combined))
     return records
 
 
-def _log_quantum_fold(rec, dataset_name, n_components, tracking_uri):
+def _log_quantum_fold(rec, dataset_name, n_components, tracking_uri, sweep_tag):
     import matplotlib.pyplot as plt
     params = {
         "framework": "quantum", "model": "qsvm", "task": rec["task"],
         "dataset": dataset_name, "n_components": n_components,
+        "n_qubits": rec["n_qubits"],
         "encoding": rec["best_params"]["encoding"],
         "bandwidth": rec["best_params"]["bandwidth"],
         "C": rec["best_params"]["C"],
@@ -139,9 +172,11 @@ def _log_quantum_fold(rec, dataset_name, n_components, tracking_uri):
     }
     with mlflow_run("qtaggerplus",
                     f"qsvm-{rec['task']}-nc{n_components}-fold{rec['fold']}",
-                    params, tracking_uri=tracking_uri) as log:
+                    params, tracking_uri=tracking_uri, tags={"sweep": sweep_tag},
+                    nested=True) as log:
         log.log_metrics({
             **rec["metrics"],
+            **{f"f1_class_{k}": v for k, v in rec["f1_per_class"].items()},
             "fit_time_sec": rec["fit_time_sec"],
             "tune_time_sec": rec["tune_time_sec"],
             "inference_time_sec": rec["inference_time_sec"],

@@ -84,6 +84,11 @@ def test_run_nested_cv_logs_to_mlflow(tmp_path):
     mlflow.set_tracking_uri(uri)
     exp = mlflow.get_experiment_by_name("qtaggerplus")
     runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
-    assert len(runs) == 1
-    assert runs.iloc[0]["params.framework"] == "classical"
+    assert len(runs) == 2  # one sweep-level parent run + one nested per-fold run
+    child = runs[runs["tags.mlflow.parentRunId"].notna()].iloc[0]
+    parent = runs[runs["tags.mlflow.parentRunId"].isna()].iloc[0]
+    assert child["params.framework"] == "classical"
     assert "metrics.fit_time_sec" in runs.columns
+    assert "metrics.f1_macro_mean" in runs.columns
+    assert pd.notna(parent["metrics.f1_macro_mean"])
+    assert any(c.startswith("metrics.f1_class_") for c in runs.columns)

@@ -1,6 +1,7 @@
 """Nested-CV orchestration: Optuna tuning inside outer stratified folds."""
 from __future__ import annotations
 
+import contextlib
 import warnings
 
 import numpy as np
@@ -8,7 +9,14 @@ import optuna
 from loguru import logger
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-from common.evaluate import auc_scores, compute_metrics, confusion_matrix_figure, timed
+from common.evaluate import (
+    aggregate_metrics,
+    auc_scores,
+    compute_metrics,
+    confusion_matrix_figure,
+    per_class_f1,
+    timed,
+)
 from common.preprocess import build_feature_pipeline
 from common.tracking import run as mlflow_run
 from classical.models import make_model, suggest_params
@@ -91,6 +99,7 @@ def evaluate_fold(
         "model": name,
         "task": task,
         "metrics": metrics,
+        "f1_per_class": per_class_f1(y_te, y_pred),
         "best_params": best_params,
         "fit_time_sec": fit_time,
         "tune_time_sec": tune_time,
@@ -101,31 +110,56 @@ def evaluate_fold(
     }
 
 
+_TIMING_KEYS = ("fit_time_sec", "tune_time_sec", "inference_time_sec")
+
+
 def run_nested_cv(
     X, y, task, name, folds, n_trials=25, seed=42, use_mlflow=False,
     inner_splits=3, dataset_name="cic-malmem", n_jobs=-1, tracking_uri=None,
     extra_params=None, n_components=None,
 ):
-    """Run every outer fold for one model x task; optionally log each to MLflow."""
+    """Run every outer fold for one model x task; optionally log each to MLflow.
+
+    When `use_mlflow`, every fold is logged as a nested child run under one
+    sweep-level parent run, and the parent gets the mean/std aggregate across
+    folds — so the sweep has a single summary row instead of only per-fold rows.
+    """
     records = []
-    for i, (train_idx, test_idx) in enumerate(folds):
-        logger.info(f"[{name}/{task}] outer fold {i + 1}/{len(folds)}")
-        rec = evaluate_fold(
-            name, task, X, y, train_idx, test_idx, n_trials, seed,
-            inner_splits=inner_splits, n_jobs=n_jobs, n_components=n_components,
+    sweep_tag = f"{name}-{task}-nc{n_components}"
+    parent_cm = (
+        mlflow_run(
+            "qtaggerplus", f"{name}-{task}-sweep",
+            {"model": name, "task": task, "dataset": dataset_name,
+             "n_jobs": n_jobs, **(extra_params or {})},
+            tracking_uri=tracking_uri, tags={"sweep": sweep_tag},
         )
-        rec["fold"] = i
-        records.append(rec)
-        if use_mlflow:
-            _log_fold_to_mlflow(
-                rec, dataset_name=dataset_name, n_jobs=n_jobs,
-                tracking_uri=tracking_uri, extra_params=extra_params or {},
+        if use_mlflow else contextlib.nullcontext()
+    )
+    with parent_cm as parent_log:
+        for i, (train_idx, test_idx) in enumerate(folds):
+            logger.info(f"[{name}/{task}] outer fold {i + 1}/{len(folds)}")
+            rec = evaluate_fold(
+                name, task, X, y, train_idx, test_idx, n_trials, seed,
+                inner_splits=inner_splits, n_jobs=n_jobs, n_components=n_components,
             )
+            rec["fold"] = i
+            records.append(rec)
+            if use_mlflow:
+                _log_fold_to_mlflow(
+                    rec, dataset_name=dataset_name, n_jobs=n_jobs,
+                    tracking_uri=tracking_uri, extra_params=extra_params or {},
+                    sweep_tag=sweep_tag,
+                )
+        if use_mlflow:
+            combined = [
+                {**r["metrics"], **{k: r[k] for k in _TIMING_KEYS}} for r in records
+            ]
+            parent_log.log_metrics(aggregate_metrics(combined))
     return records
 
 
-def _log_fold_to_mlflow(rec, dataset_name, n_jobs, tracking_uri, extra_params):
-    """One MLflow run per model x task x fold."""
+def _log_fold_to_mlflow(rec, dataset_name, n_jobs, tracking_uri, extra_params, sweep_tag):
+    """One nested MLflow run per model x task x fold, under the sweep's parent run."""
     import matplotlib.pyplot as plt
 
     params = {
@@ -134,10 +168,11 @@ def _log_fold_to_mlflow(rec, dataset_name, n_jobs, tracking_uri, extra_params):
     }
     with mlflow_run(
         "qtaggerplus", f"{rec['model']}-{rec['task']}-fold{rec['fold']}",
-        params, tracking_uri=tracking_uri,
+        params, tracking_uri=tracking_uri, tags={"sweep": sweep_tag}, nested=True,
     ) as log:
         log.log_metrics({
             **rec["metrics"],
+            **{f"f1_class_{k}": v for k, v in rec["f1_per_class"].items()},
             "fit_time_sec": rec["fit_time_sec"],
             "tune_time_sec": rec["tune_time_sec"],
             "inference_time_sec": rec["inference_time_sec"],

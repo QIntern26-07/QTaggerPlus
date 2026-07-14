@@ -67,3 +67,32 @@ def test_auc_scores_svm_binary_uses_decision_function():
 def test_auc_scores_svm_multiclass_softmaxed():
     P = auc_scores(_SVMLikeMulti(), np.zeros((3, 2)), "multiclass")
     assert P.shape == (3, 3) and np.allclose(P.sum(axis=1), 1.0)
+
+
+# Tests for per_class_f1 and aggregate_metrics helpers
+from common.evaluate import aggregate_metrics, per_class_f1
+
+
+def test_per_class_f1_perfect_predictions():
+    y_true = np.array([0, 1, 2, 0, 1, 2])
+    y_pred = y_true.copy()
+    scores = per_class_f1(y_true, y_pred)
+    assert scores == {"0": 1.0, "1": 1.0, "2": 1.0}
+
+
+def test_per_class_f1_respects_explicit_labels_even_when_absent_from_fold():
+    # class "2" never appears in this fold's y_true/y_pred; an explicit label
+    # set still reports a (zero) score for it instead of silently dropping the
+    # key, so per-fold dicts stay uniform across a CV sweep.
+    y_true = np.array([0, 1, 0, 1])
+    y_pred = np.array([0, 1, 1, 1])
+    scores = per_class_f1(y_true, y_pred, labels=[0, 1, 2])
+    assert set(scores) == {"0", "1", "2"}
+    assert scores["2"] == 0.0
+
+
+def test_aggregate_metrics_mean_and_std():
+    metrics_list = [{"f1_macro": 1.0}, {"f1_macro": 0.5}]
+    agg = aggregate_metrics(metrics_list)
+    assert agg["f1_macro_mean"] == 0.75
+    assert agg["f1_macro_std"] == 0.25

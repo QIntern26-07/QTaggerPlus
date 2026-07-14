@@ -4,23 +4,19 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from loguru import logger
 
 from common import data
+from common.evaluate import aggregate_metrics
 from classical import run
 from classical.models import MODEL_NAMES
 
 
 def aggregate_records(records) -> dict:
     """Mean/std per metric across a model x task's fold records."""
-    metric_keys = records[0]["metrics"].keys()
     agg = {"model": records[0]["model"], "task": records[0]["task"]}
-    for key in metric_keys:
-        vals = np.array([r["metrics"][key] for r in records], dtype=float)
-        agg[f"{key}_mean"] = float(vals.mean())
-        agg[f"{key}_std"] = float(vals.std(ddof=0))
+    agg.update(aggregate_metrics([r["metrics"] for r in records]))
     return agg
 
 
