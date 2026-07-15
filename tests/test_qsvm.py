@@ -102,3 +102,37 @@ def test_gram_single_row_does_not_crash():
     m = QSVM(encoding="angle", n_components=2)
     K = m.gram(X, X)
     assert K.shape == (1, 1)
+
+
+def test_parallel_gram_matches_serial_gram():
+    # The fidelity kernel is deterministic, so splitting the pair evaluations
+    # across worker processes (n_jobs>1) must produce a bit-for-bit equivalent
+    # Gram to the single-core path. parallel_min_pairs is set low so a small
+    # test matrix still exercises the multiprocessing branch.
+    X, _ = _toy(n=20)
+    m_serial = QSVM(encoding="iqp", n_components=2, n_jobs=1)
+    m_parallel = QSVM(encoding="iqp", n_components=2, n_jobs=2,
+                      parallel_min_pairs=1)
+    K_serial = m_serial._gram_sym(X)
+    K_parallel = m_parallel._gram_sym(X)
+    assert np.allclose(K_serial, K_parallel, atol=1e-10)
+
+
+def test_parallel_asymmetric_gram_matches_serial():
+    # Same equivalence for the non-symmetric test Gram (gram(A, B), A != B).
+    Xa, _ = _toy(n=12, seed=1)
+    Xb, _ = _toy(n=9, seed=2)
+    m_serial = QSVM(encoding="angle", n_components=2, n_jobs=1)
+    m_parallel = QSVM(encoding="angle", n_components=2, n_jobs=2,
+                      parallel_min_pairs=1)
+    assert np.allclose(m_serial.gram(Xa, Xb), m_parallel.gram(Xa, Xb), atol=1e-10)
+
+
+def test_parallel_below_threshold_stays_serial():
+    # Below parallel_min_pairs the small-matrix path must avoid the
+    # process-spawn overhead entirely (correctness identical either way).
+    X, _ = _toy(n=6)
+    m = QSVM(encoding="angle", n_components=2, n_jobs=-1,
+             parallel_min_pairs=10_000)
+    K = m._gram_sym(X)
+    assert np.allclose(K, K.T, atol=1e-9)

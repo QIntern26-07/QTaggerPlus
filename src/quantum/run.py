@@ -46,7 +46,7 @@ def _prep(X_tr, X_te, n_components, encoding, n_qubits, seed):
     return scaler.transform(Ztr), scaler.transform(Zte)
 
 
-def tune_and_fit_qsvm(X_tr, y_tr, task, n_components, grid, seed):
+def tune_and_fit_qsvm(X_tr, y_tr, task, n_components, grid, seed, n_jobs=-1):
     """Two-tier tuning on the train fold; refit best QSVM on the full fold.
 
     Returns (model, best_params, fit_time_sec) with fit_time_sec the final refit
@@ -64,7 +64,7 @@ def tune_and_fit_qsvm(X_tr, y_tr, task, n_components, grid, seed):
         for bw in grid["bandwidth"]:
             bandwidth = default_bandwidth(n_qubits) if bw is None else bw
             probe = QSVM(encoding=encoding, n_components=n_components,
-                         bandwidth=bandwidth, task=task, seed=seed)
+                         bandwidth=bandwidth, task=task, seed=seed, n_jobs=n_jobs)
             Kaa = probe._gram_sym(Za)          # inner-train Gram, built ONCE
             Kba = probe.gram(Zb, Za)           # inner-val Gram, built ONCE
             for C in grid["C"]:
@@ -83,19 +83,21 @@ def tune_and_fit_qsvm(X_tr, y_tr, task, n_components, grid, seed):
     Ztr, _ = _prep(X_tr, X_tr[:1], n_components, params["encoding"], n_qubits, seed)
     model = QSVM(encoding=params["encoding"], n_components=n_components,
                  bandwidth=params["bandwidth"], C=params["C"],
-                 class_weight=params["class_weight"], task=task, seed=seed)
+                 class_weight=params["class_weight"], task=task, seed=seed,
+                 n_jobs=n_jobs)
     _, fit_time = timed(model.fit, Ztr, y_tr)
     return model, params, fit_time
 
 
-def evaluate_fold_quantum(X, y, task, train_idx, test_idx, n_components, grid, seed):
+def evaluate_fold_quantum(X, y, task, train_idx, test_idx, n_components, grid,
+                          seed, n_jobs=-1):
     X = np.asarray(X, dtype=float)
     y = np.asarray(y)
     X_tr, X_te = X[train_idx], X[test_idx]
     y_tr, y_te = y[train_idx], y[test_idx]
 
     (model, best_params, fit_time), tune_plus_fit = timed(
-        tune_and_fit_qsvm, X_tr, y_tr, task, n_components, grid, seed
+        tune_and_fit_qsvm, X_tr, y_tr, task, n_components, grid, seed, n_jobs=n_jobs
     )
     tune_time = tune_plus_fit - fit_time
 
@@ -127,7 +129,8 @@ _TIMING_KEYS = ("fit_time_sec", "tune_time_sec", "inference_time_sec")
 
 
 def run_quantum_cv(X, y, task, folds, n_components, grid=None, seed=42,
-                   use_mlflow=False, tracking_uri=None, dataset_name="cic-malmem"):
+                   use_mlflow=False, tracking_uri=None, dataset_name="cic-malmem",
+                   n_jobs=-1):
     """Run every outer fold; optionally log each as a nested child run under one
     sweep-level parent run that gets the mean/std aggregate across folds."""
     grid = grid or DEFAULT_GRID
@@ -146,7 +149,7 @@ def run_quantum_cv(X, y, task, folds, n_components, grid=None, seed=42,
         for i, (train_idx, test_idx) in enumerate(folds):
             logger.info(f"[qsvm/{task}] outer fold {i + 1}/{len(folds)}")
             rec = evaluate_fold_quantum(X, y, task, train_idx, test_idx,
-                                        n_components, grid, seed)
+                                        n_components, grid, seed, n_jobs=n_jobs)
             rec["fold"] = i
             records.append(rec)
             if use_mlflow:
@@ -190,7 +193,7 @@ def _log_quantum_fold(rec, dataset_name, n_components, tracking_uri, sweep_tag):
         plt.close(fig)
 
 
-def timing_probe(X, y, task, n_components, encoding, seed=42):
+def timing_probe(X, y, task, n_components, encoding, seed=42, n_jobs=-1):
     """Single untuned QSVM fit/predict to measure wall-clock before a full sweep.
 
     Deliberately no CV and no tuning: the point is to learn the per-Gram cost at
@@ -202,7 +205,8 @@ def timing_probe(X, y, task, n_components, encoding, seed=42):
     Xtr, Xte, ytr, yte = _tts(X, y, test_size=0.2, stratify=y, random_state=seed)
     n_qubits = n_qubits_for(encoding, n_components)
     Ztr, Zte = _prep(Xtr, Xte, n_components, encoding, n_qubits, seed)
-    model = QSVM(encoding=encoding, n_components=n_components, task=task, seed=seed)
+    model = QSVM(encoding=encoding, n_components=n_components, task=task,
+                 seed=seed, n_jobs=n_jobs)
     _, fit_time = timed(model.fit, Ztr, ytr)
     y_pred, infer_time = timed(model.predict, Zte)
     y_score = auc_scores(model, Zte, task)

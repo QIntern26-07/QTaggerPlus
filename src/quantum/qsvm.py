@@ -24,9 +24,14 @@ import time
 
 import numpy as np
 import pennylane as qml
+from joblib import Parallel, delayed, effective_n_jobs
 from sklearn.svm import SVC
 
 from quantum.encoding import default_bandwidth, feature_map, n_qubits_for
+
+# Below this many pairs, the process-spawn overhead of parallel evaluation
+# outweighs the gain, so small Grams (tests, tiny inner-CV folds) stay serial.
+_PARALLEL_MIN_PAIRS = 20_000
 
 
 def _resolve_device(preferred: str = "lightning.qubit") -> str:
@@ -37,10 +42,36 @@ def _resolve_device(preferred: str = "lightning.qubit") -> str:
         return "default.qubit"
 
 
+def _eval_kernel_chunk(X1, X2, encoding, n_qubits, bandwidth, batch_size, device_name):
+    """Evaluate fidelity kernel[0] for paired rows of X1, X2 in a worker process.
+
+    Builds its own device + QNode so nothing PennyLane-stateful has to be pickled
+    across the process boundary — only plain arrays and scalars are sent. The
+    kernel is deterministic, so this returns exactly what the serial path would
+    for the same rows.
+    """
+    dev = qml.device(device_name, wires=n_qubits)
+    wires = list(range(n_qubits))
+
+    @qml.qnode(dev)
+    def kernel(x1, x2):
+        feature_map(x1, wires, encoding, bandwidth)
+        qml.adjoint(feature_map)(x2, wires, encoding, bandwidth)
+        return qml.probs(wires=wires)
+
+    n = len(X1)
+    out = np.empty(n)
+    for start in range(0, n, batch_size):
+        end = min(start + batch_size, n)
+        probs = kernel(X1[start:end], X2[start:end])
+        out[start:end] = np.asarray(probs)[:, 0]
+    return out
+
+
 class QSVM:
     def __init__(self, encoding="angle", n_components=None, bandwidth=None,
                  C=1.0, class_weight=None, task="binary", device=None, seed=42,
-                 batch_size=4096):
+                 batch_size=4096, n_jobs=-1, parallel_min_pairs=_PARALLEL_MIN_PAIRS):
         self.encoding = encoding
         self.n_components = n_components
         self.C = C
@@ -48,14 +79,16 @@ class QSVM:
         self.task = task
         self.seed = seed
         self.batch_size = batch_size
+        self.n_jobs = n_jobs
+        self.parallel_min_pairs = parallel_min_pairs
         n_features = n_components if n_components is not None else 1
         self.n_qubits = n_qubits_for(encoding, n_features)
         self.bandwidth = (
             default_bandwidth(self.n_qubits) if bandwidth is None else bandwidth
         )
         self._wires = list(range(self.n_qubits))
-        dev_name = device or _resolve_device()
-        self._dev = qml.device(dev_name, wires=self.n_qubits)
+        self._dev_name = device or _resolve_device()
+        self._dev = qml.device(self._dev_name, wires=self.n_qubits)
         self._svc = SVC(
             kernel="precomputed", C=C, class_weight=class_weight,
             decision_function_shape="ovr", random_state=seed,
@@ -82,20 +115,40 @@ class QSVM:
             self._warm = True
 
     def _kernel_pairs(self, X1, X2):
-        """Evaluate kernel[0] for paired rows of X1, X2 via broadcasting.
+        """Evaluate kernel[0] for paired rows of X1, X2.
 
-        One QNode dispatch per chunk of `batch_size` pairs instead of one
-        dispatch per pair, so the Python/tape-construction overhead is paid
-        len(X1) / batch_size times rather than len(X1) times.
+        Small Grams run serially (one QNode dispatch per `batch_size` chunk).
+        Large Grams (>= parallel_min_pairs) are split into `n_jobs` contiguous
+        slices evaluated in worker processes, since lightning.qubit on these
+        small circuits is single-threaded — the wall-clock cost is the sheer
+        O(n^2) pair count, which parallelizes cleanly across cores. Results are
+        concatenated in order, so the output is identical to the serial path.
         """
         n = len(X1)
-        out = np.empty(n)
-        for start in range(0, n, self.batch_size):
-            end = min(start + self.batch_size, n)
-            probs = self._kernel(X1[start:end], X2[start:end])
-            out[start:end] = np.asarray(probs)[:, 0]
         self.kernel_evals += n
-        return out
+        n_workers = effective_n_jobs(self.n_jobs)
+        if n_workers == 1 or n < self.parallel_min_pairs:
+            out = np.empty(n)
+            for start in range(0, n, self.batch_size):
+                end = min(start + self.batch_size, n)
+                probs = self._kernel(X1[start:end], X2[start:end])
+                out[start:end] = np.asarray(probs)[:, 0]
+            return out
+
+        bounds = np.linspace(0, n, n_workers + 1).astype(int)
+        slices = [
+            (bounds[i], bounds[i + 1])
+            for i in range(n_workers)
+            if bounds[i] < bounds[i + 1]
+        ]
+        results = Parallel(n_jobs=self.n_jobs)(
+            delayed(_eval_kernel_chunk)(
+                X1[s:e], X2[s:e], self.encoding, self.n_qubits, self.bandwidth,
+                self.batch_size, self._dev_name,
+            )
+            for s, e in slices
+        )
+        return np.concatenate(results)
 
     def gram(self, A, B):
         """Full (non-symmetric) Gram matrix between rows of A and B."""

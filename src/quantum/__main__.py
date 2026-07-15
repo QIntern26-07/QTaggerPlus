@@ -23,6 +23,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--encodings", nargs="+", default=["angle", "iqp"])
     p.add_argument("--probe", action="store_true",
                    help="single untuned fit to measure wall-clock, then exit.")
+    p.add_argument(
+        "--n-jobs", type=int, default=-1,
+        help="worker processes for the QSVM kernel Gram build (each ~1 core). "
+             "lightning.qubit on these small circuits is single-threaded, so the "
+             "O(n^2) pair count is split across processes. -1 = all cores; cap it "
+             "(e.g. 8) to leave headroom for the desktop/IDE and avoid "
+             "oversubscription.",
+    )
     p.add_argument("--mlflow", action="store_true")
     p.add_argument("--tracking-uri", default=None)
     p.add_argument("--seed", type=int, default=42)
@@ -65,7 +73,8 @@ def main(argv=None) -> int:
 
         if args.probe:
             for enc in args.encodings:
-                rec = timing_probe(X, y, task, args.n_components, enc, args.seed)
+                rec = timing_probe(X, y, task, args.n_components, enc, args.seed,
+                                   n_jobs=args.n_jobs)
                 logger.info(
                     f"[probe] {enc} nc={args.n_components} "
                     f"kernel_train={rec['kernel_build_train_s']:.3f}s "
@@ -80,7 +89,7 @@ def main(argv=None) -> int:
                 "C": [0.1, 1.0, 10.0], "class_weight": [None, "balanced"]}
         run_quantum_cv(X, y, task, folds, args.n_components, grid=grid,
                        seed=args.seed, use_mlflow=args.mlflow,
-                       tracking_uri=args.tracking_uri)
+                       tracking_uri=args.tracking_uri, n_jobs=args.n_jobs)
     return 0
 
 
