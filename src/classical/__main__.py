@@ -59,21 +59,20 @@ def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     logger.add("run.log", rotation="10 MB")
     df = data.load_cic_malmem(args.csv)
-    X, y_bin, y_multi = data.build_xy(df)
-
-    if args.load_quantum_splits:
-        sample_idx = data.load_sample_idx("data/splits/quantum_sample_idx.json")
-        X = X.iloc[sample_idx].reset_index(drop=True)
-        y_bin = y_bin.iloc[sample_idx].reset_index(drop=True)
-        y_multi = y_multi.iloc[sample_idx].reset_index(drop=True)
-
-    targets = {"binary": y_bin, "multiclass": y_multi}
 
     rows = []
     for task in args.tasks:
-        y = targets[task]
+        # Per-task row set: binary = all rows, multiclass = malware-only 15-class
+        # (see data.task_xy). Must match what the quantum CLI persisted, so a
+        # multiclass sample_idx indexes into the malware-only frame here too.
+        X, y = data.task_xy(df, task)
         Path("data/splits").mkdir(parents=True, exist_ok=True)
         if args.load_quantum_splits:
+            sample_idx = data.load_sample_idx(
+                f"data/splits/quantum_sample_idx_{task}.json"
+            )
+            X = X.iloc[sample_idx].reset_index(drop=True)
+            y = y.iloc[sample_idx].reset_index(drop=True)
             # Reuse the exact folds the quantum run computed over this same
             # subsample, instead of freshly computing (and silently
             # overwriting them with) different folds.

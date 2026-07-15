@@ -66,3 +66,30 @@ def test_make_model_svm_ignores_n_jobs_param():
     # SVC has no n_jobs constructor arg; passing n_jobs must not raise.
     est = models.make_model("svm", params={}, task="binary", n_jobs=1)
     assert "n_jobs" not in est.get_params()
+
+
+def test_xgboost_applies_balanced_sample_weight_on_fit(monkeypatch):
+    # XGBClassifier has no class_weight param, so (unlike RF/LightGBM) the only
+    # way to weight classes is sample_weight. make_model("xgboost") must inject
+    # balanced weights at fit time — computed per call on the y it's given, so
+    # inner-CV folds get their own correct weights with no leakage.
+    import numpy as np
+    from sklearn.utils.class_weight import compute_sample_weight
+    from xgboost import XGBClassifier
+
+    captured = {}
+
+    def spy_fit(self, X, y, **kwargs):
+        captured["sample_weight"] = kwargs.get("sample_weight")
+        return self
+
+    monkeypatch.setattr(XGBClassifier, "fit", spy_fit)
+
+    X = np.arange(24).reshape(12, 2).astype(float)
+    y = np.array([0] * 10 + [1] * 2)  # imbalanced: 10 vs 2
+
+    models.make_model("xgboost", params={}, task="binary").fit(X, y)
+
+    expected = compute_sample_weight("balanced", y)
+    assert captured["sample_weight"] is not None
+    assert np.allclose(captured["sample_weight"], expected)
