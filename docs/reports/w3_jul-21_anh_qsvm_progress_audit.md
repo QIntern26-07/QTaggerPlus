@@ -50,6 +50,18 @@ deliberately did not build (see §1, Day 2).
 **Blocked on others.** Team A's schema, which the evaluation protocol needs to be finalized against.
 Team B's CTGAN-augmented dataset for Week 3 Day 4. I am ready on my side for both.
 
+### Where the code lives
+
+| Work | Branch | State |
+|---|---|---|
+| 15-class malware-only reframe, balanced XGBoost, Gram parallelization, Jul-16 results | `feature/multiclass-malware-only-reframe` | **merged** to `main` via PR #4 |
+| EMBER 2018 support, MLflow CSV export, this report | `feature/ember-2018-support` | **open** as PR #5, awaiting review |
+| Everything from Week 2 Day 1 through the Jul-14 multiclass sweep | — | already on `main` (PRs #1–#3) |
+
+Nothing of mine is sitting unreviewed on a local branch. PR #5 is the only
+outstanding piece, and it is code plus documentation — no experimental results depend on it yet,
+since the EMBER sweeps have not been run.
+
 ---
 
 ## 1. Week 2 (Days 8–10)
@@ -197,7 +209,8 @@ EMBER SVM fix, Ge's SOREL retune, the VQC results) belong to my teammates and ar
 
 ## 3. Work I did that was not on either plan
 
-**EMBER 2018 support, binary + multiclass** (2026-07-20; uncommitted at the time of writing).
+**EMBER 2018 support, binary + multiclass** (2026-07-20; on `feature/ember-2018-support`, open as
+PR #5).
 This closes the EMBER half of Week 2 Day 2, three days late. It also removes the constraint Team B
 flagged in their own plan — "EMBER 2018 is binary-only, no family labels" — which is no longer true.
 
