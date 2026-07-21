@@ -1,0 +1,10 @@
+2026-07-16 02:58:21.784 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 1/5
+2026-07-16 03:05:46.221 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0836
+2026-07-16 03:05:46.790 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 2/5
+2026-07-16 03:12:55.120 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0497
+2026-07-16 03:12:55.567 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 3/5
+2026-07-16 03:16:59.345 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0581
+2026-07-16 03:16:59.799 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 4/5
+2026-07-16 03:21:08.242 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0804
+2026-07-16 03:21:08.632 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 5/5
+2026-07-16 03:26:25.445 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0821

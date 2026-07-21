@@ -33,6 +33,41 @@ def build_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     return X, y_binary, y_multiclass
 
 
+def malware_family_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    """Features and 15-class family labels for the malware-only multiclass task.
+
+    Drops Benign rows entirely (Benign detection is already the binary task, and
+    keeping it makes the multiclass label space pathologically imbalanced —
+    Benign ~21x any single family). The remaining malware families are internally
+    near-balanced (~1.7x) and re-encoded contiguously from 0. Index is reset so
+    downstream positional indexing (subsample idx, CV folds) is valid.
+    """
+    is_malware = df["Class"].str.strip().str.lower() == "malware"
+    dfm = df[is_malware].reset_index(drop=True)
+    X = dfm.drop(columns=list(FEATURE_LABEL_COLS))
+    family = dfm["Category"].str.split("-").str[:2].str.join("-").str.strip()
+    y_family = pd.Series(
+        LabelEncoder().fit_transform(family), name="y_family"
+    )
+    return X, y_family
+
+
+def task_xy(df: pd.DataFrame, task: str) -> tuple[pd.DataFrame, pd.Series]:
+    """Return the (X, y) row set a task operates on. Single source of truth so
+    the classical and quantum CLIs can never drift on what a task means (a drift
+    would silently misalign their shared subsample/fold contract).
+
+    binary: all rows, Benign-vs-Malware label.
+    multiclass: malware-only rows, 15-class family label (see malware_family_xy).
+    """
+    if task == "binary":
+        X, y_binary, _ = build_xy(df)
+        return X, y_binary
+    if task == "multiclass":
+        return malware_family_xy(df)
+    raise ValueError(f"unknown task: {task}")
+
+
 def make_outer_folds(y, n_splits: int = 5, seed: int = 42):
     """Return a list of (train_idx, test_idx) numpy arrays via stratified k-fold."""
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)

@@ -5,9 +5,27 @@ import optuna
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn.utils.class_weight import compute_sample_weight
 from xgboost import XGBClassifier
 
 MODEL_NAMES = ("random_forest", "xgboost", "lightgbm", "svm")
+
+
+class BalancedXGBClassifier(XGBClassifier):
+    """XGBClassifier that always applies class-balanced sample weights on fit.
+
+    XGBoost has no `class_weight` param, so without this it would be the only
+    model in MODEL_NAMES with no imbalance handling (RF/LightGBM hard-code
+    class_weight="balanced"; SVM/QSVM tune it). Weights are computed per fit()
+    call from that call's own y, so inner-CV folds are weighted from their own
+    training labels — no leakage from the held-out fold.
+    """
+
+    def fit(self, X, y, sample_weight=None, **kwargs):
+        balanced = compute_sample_weight("balanced", y)
+        if sample_weight is not None:
+            balanced = balanced * sample_weight
+        return super().fit(X, y, sample_weight=balanced, **kwargs)
 
 
 def make_model(name: str, params: dict, task: str, seed: int = 42, n_jobs: int = -1):
@@ -24,7 +42,7 @@ def make_model(name: str, params: dict, task: str, seed: int = 42, n_jobs: int =
         )
     if name == "xgboost":
         objective = "binary:logistic" if task == "binary" else "multi:softprob"
-        return XGBClassifier(
+        return BalancedXGBClassifier(
             random_state=seed, n_jobs=n_jobs, objective=objective,
             eval_metric="logloss", tree_method="hist", **params,
         )
