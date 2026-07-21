@@ -30,7 +30,7 @@ Legend: **DONE** · **PARTIAL** · **NOT STARTED** · **BLOCKED**
 | W2 D3 | Train the multi-class QSVM; first-pass results; runtime benchmark; finalize the evaluation protocol | **DONE** (CIC) / **PARTIAL** (protocol doc) |
 | W3 D1 | Begin the n_components ≥ 2 sweep for a fair angle-vs-iqp comparison | **DONE** — early (Jul 11–12) |
 | W3 D2 | Extend the QSVM ramp to nc = 2, 3; merge into the PCA alignment branch | **DONE** — early |
-| W3 D3 | Finalize and document the angle-vs-iqp verdict at nc ≥ 2 | **DONE** — early |
+| W3 D3 | Finalize and document the angle-vs-iqp verdict at nc ≥ 2 | **DONE** — early, with one follow-up open (see §2, Days 1–3) |
 | W3 D4 | Run QSVM on Team B's CTGAN-augmented dataset at n=1000 | **BLOCKED** — dataset not handed over |
 | W3 D5 | Build a minimal representative stratified sample under the PCA/qubit-budget convention | **DONE** |
 | W3 D6 | Train the multi-class QSVM; record per-class F1, macro/weighted F1, confusion matrix | **DONE** |
@@ -143,19 +143,42 @@ open reconciliation points that need Team A's real schema. **Blocked on Team A**
 
 | Task                                      | n_components | iqp wins (inner-CV fold selections) | Reading                                                                   |
 |-------------------------------------------|--------------|-------------------------------------|---------------------------------------------------------------------------|
-| binary                                    | 1            | 0/10                                | iqp cannot win at 1 qubit *by construction* — no feature pair to entangle |
-| binary                                    | 2, 3, 6      | **2/30**                            | no advantage; the two wins are scattered, with no trend in qubit count    |
-| multiclass, 16-class, n=200               | 1…6          | **12/30**                           | never at nc=1 (0/5), then rising monotonically to 3/5 at nc=6             |
-| multiclass, 15-class malware-only, n=1000 | 1, 3, 6      | **8/15** (2/5, 3/5, 3/5)            | co-competitive with `angle`, no monotone dominance                        |
+| binary                                    | 1            | 0/10                                     | iqp cannot win at 1 qubit *by construction* — no feature pair to entangle |
+| binary                                    | 2, 3, 6      | **2/30**                                 | no advantage; the two wins are scattered, with no trend in qubit count |
+| multiclass, 16-class, n=200               | 1…6          | **12/30**                                | rising (0/5 at nc=1 → 3/5 at nc=6), but ~5 members/class makes this plausibly noise |
+| multiclass, 16-class, **n=1000**          | 1…6          | **20/30** (1, 3, 4, 3, 4, **5**/5)       | **monotone climb to unanimous 5/5 at nc=6 — the real signal** |
+| multiclass, 15-class malware-only, n=1000 | 1, 3, 6      | **8/15** (2/5, 3/5, 3/5)                 | flattened back to co-competitive after Benign was dropped |
 
 **Verdict.** My Jul-9 hypothesis — that iqp underperformed only because nc=1 denied it a feature
-pair — is **not confirmed**. Given a fair shot at 2–6 qubits, iqp still fails to dominate on binary
-(2/30). It does become genuinely competitive as the task gets harder and the qubit count rises
-(16-class: 0/5 → 3/5 across nc=1→6), but the 15-class reframe flattened that trend back to
-co-competitive. My conclusion is that encoding choice is **not the lever that matters** on this
-data, and I would not spend more time tuning it. One cost note for anyone choosing on runtime
-grounds: at nc=2 the two encodings cost the same (10 gates, ~11 s at n=400); `iqp`'s quadratic
-`MultiRZ` penalty only bites at higher qubit counts (28 vs 6 gates at 4 qubits, 88 vs 46 at 8).
+pair — is **partly confirmed, and the confirming evidence is the strongest single encoding result
+in the project.** On the 16-class task at n=1000, iqp climbs monotonically from 1/5 at nc=1 to a
+**unanimous 5/5 at nc=6**. That run is the one to trust: unlike the n=200 stage (~5 members/class,
+where fold-level selection is close to a coin flip), 1000 samples gives each fold's inner-CV
+comparison enough data to be meaningful. It is also exactly the shape the Day-1 profiling report
+predicted — iqp's entangling structure needs a feature pair to act on, so its advantage should
+appear only once n_components is high enough.
+
+The advantage is **conditional**, not general. It requires all three of: a multiclass (hard) task,
+enough qubits, and enough samples for the comparison to be reliable. It does not appear on binary
+(2/30) — but binary is saturated at macro-F1 ≈ 0.99, so there is almost no headroom for any
+encoding to distinguish itself there. And it did **not** carry over to the 15-class malware-only
+reframe (8/15). My working explanation is that dropping Benign removed the easy
+Benign-vs-family one-vs-one boundaries, leaving a noisier, fully balanced set of pairwise fits
+where neither encoding systematically wins — but I want to be clear that this is a hypothesis I
+have not tested, not a finding.
+
+**What I would do about it.** This is the one open encoding question worth a run, and I do not
+consider it settled: the 15-class reframe is now the project's primary multiclass task, and iqp's
+status on it rests on three data points (nc = 1, 3, 6). I would extend the 15-class sweep past
+nc=6 to see whether the n=1000/16-class trend reappears once there are more qubits to entangle. I
+would also stop counting inner-CV selection wins and compare the two encodings' held-out macro-F1
+directly — win-counting tells you which encoding the tuner picked, not how much better it actually
+scored, and the whole verdict above currently rests on that weaker signal.
+
+One cost note for anyone choosing on runtime grounds: at nc=2 the two encodings cost the same
+(10 gates, ~11 s at n=400); iqp's quadratic `MultiRZ` penalty only bites at higher qubit counts
+(28 vs 6 gates at 4 qubits, 88 vs 46 at 8). So if the 15-class extension does reproduce the win,
+it will not come free.
 
 ### Day 4 — Pair with Shanmukh (Team B) to run QSVM/VQC on the CTGAN-augmented dataset at n=1000
 
@@ -246,6 +269,7 @@ on shared splits — are still ahead of me.
 | **EMBER sweeps**                                                                                                                                    | code ready, not run        | My immediate next action. Based on CIC timings, roughly 28 min per nc at n=1000.                                                                                                                                                                                                                                                                                                                                                                                |
 | **SOREL-20M**                                                                                                                                       | NOT STARTED                | **This needs a design decision before any code.** SOREL's labels are 11 multi-label behavior tags with no single family class, so plain stratification does not apply. The options are binary-only, a dominant-tag class, or iterative multi-label stratification. This is the largest remaining gap against the goal of running both tasks on both additional datasets, and I would appreciate a steer on which framing you consider defensible for the paper. |
 | **Subsample sizing decision**                                                                                                                       | NOT STARTED                | I measured the scaling law but never solved it for a runtime budget. Small piece of work; I can close it alongside the EMBER sweeps.                                                                                                                                                                                                                                                                                                                            |
+| **iqp-vs-angle on the 15-class task**                                                                                                               | OPEN                       | iqp wins decisively on 16-class at n=1000 (unanimous 5/5 at nc=6) but not on the 15-class reframe (8/15 over nc = 1, 3, 6). Since 15-class is now the primary multiclass task, this needs a sweep past nc=6 and a direct held-out macro-F1 comparison rather than inner-CV win-counting. See §2, Days 1–3. |
 | **Evaluation protocol finalization**                                                                                                                | Blocked on Team A          | Skeleton drafted; the open reconciliation points need their real schema.                                                                                                                                                                                                                                                                                                                                                                                        |
 | **CTGAN-augmented quantum run**                                                                                                                     | Blocked on Team B          | Week 3 Day 4; I am ready on my side.                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
