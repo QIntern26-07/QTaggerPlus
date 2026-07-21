@@ -13,8 +13,10 @@ from quantum.run import run_quantum_cv, timing_probe
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="CIC-MalMem QSVM baselines")
-    p.add_argument("--csv", default="data/cic_malmem/Obfuscated-MalMem2022.csv")
+    p = argparse.ArgumentParser(description="QSVM baselines (CIC-MalMem / EMBER)")
+    p.add_argument("--dataset", choices=["cic", "ember"], default="cic")
+    p.add_argument("--csv", default=None,
+                   help="dataset file; defaults per --dataset (CIC csv / EMBER parquet).")
     p.add_argument("--tasks", nargs="+", default=["binary"])
     p.add_argument("--n-components", type=int, default=1)
     p.add_argument("--folds", type=int, default=5)
@@ -40,7 +42,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     logger.add("run.log", rotation="10 MB")
-    df = data.load_cic_malmem(args.csv)
+    if args.dataset == "ember":
+        df = data.load_ember(args.csv or "data/ember/ember2018_test.parquet")
+    else:
+        df = data.load_cic_malmem(args.csv or "data/cic_malmem/Obfuscated-MalMem2022.csv")
     Path("data/splits").mkdir(parents=True, exist_ok=True)
 
     # Each task now operates on its OWN row set — binary on all rows, multiclass
@@ -50,9 +55,10 @@ def main(argv=None) -> int:
     # frame. classical --load-quantum-splits must apply the matching task_xy
     # before indexing.
     for task in args.tasks:
-        X_df, y_ser = data.task_xy(df, task)
+        X_df, y_ser = data.task_xy(df, task, dataset=args.dataset)
         X_full = X_df.to_numpy()
         y_full = y_ser.to_numpy()
+        sample_path, folds_path = data.split_paths(args.dataset, task)
 
         # Subsample by INDEX (kernel cost is quadratic), stratified on this
         # task's own labels so every class survives for StratifiedKFold.
@@ -69,7 +75,7 @@ def main(argv=None) -> int:
         y = y_full[sample_idx]
         # Persist the per-task subsample so `classical --load-quantum-splits`
         # can score the identical rows for a fair comparison.
-        data.save_sample_idx(sample_idx, f"data/splits/quantum_sample_idx_{task}.json")
+        data.save_sample_idx(sample_idx, sample_path)
 
         if args.probe:
             for enc in args.encodings:
@@ -84,12 +90,14 @@ def main(argv=None) -> int:
         # These folds index INTO THE SUBSAMPLE (0..len(sample_idx)-1), since y
         # is already row-aligned to sample_idx above.
         folds = data.make_outer_folds(y, n_splits=args.folds, seed=args.seed)
-        data.save_folds(folds, f"data/splits/cic_{task}_quantum_folds.json")
+        data.save_folds(folds, folds_path)
         grid = {"encoding": args.encodings, "bandwidth": [None],
                 "C": [0.1, 1.0, 10.0], "class_weight": [None, "balanced"]}
+        dataset_name = {"cic": "cic-malmem", "ember": "ember-2018"}[args.dataset]
         run_quantum_cv(X, y, task, folds, args.n_components, grid=grid,
                        seed=args.seed, use_mlflow=args.mlflow,
-                       tracking_uri=args.tracking_uri, n_jobs=args.n_jobs)
+                       tracking_uri=args.tracking_uri, n_jobs=args.n_jobs,
+                       dataset_name=dataset_name)
     return 0
 
 

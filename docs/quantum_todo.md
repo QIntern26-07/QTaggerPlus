@@ -6,13 +6,15 @@ quantum work is complete -- items here are known-open, not forgotten.
 
 ## Open
 
-- [ ] **EMBER 2018 and SOREL-20M — not started at all.** `day6_7_classical_baselines_plan.md`
-  scoped classical baselines (and, by extension, the quantum comparison) across
-  three datasets, but every run so far (Week 1 classical baseline, all of Week
-  2's quantum/classical sweeps) has only ever touched CIC-MalMem-2022. No
-  loader exists in `src/common/data.py` for either dataset, and neither has
-  been downloaded. This is the largest remaining gap against the original
-  scope, not a small follow-up.
+- [ ] **SOREL-20M — not started.** No loader, not downloaded. Its labels are 11
+  multi-label behavior tags (no single family class), so plain stratification
+  does not apply — decide binary-only vs. dominant-tag class vs. iterative
+  multi-label stratification before building anything. EMBER's half is fully
+  resolved (see Decided below).
+- [ ] **EMBER experiments not yet run.** Loader + CLI support exist for both
+  binary and multiclass (see Decided); only the full sweeps (n≈1000, encodings
+  angle+iqp, n_components 1/3/6) remain to execute beyond the end-to-end
+  multiclass probe.
 - [ ] **Day 2 EMBER/SOREL-20M subsample sizing decision.** Blocked on the item
   above — this was meant to size the quantum subsample for those datasets
   specifically. We have the kernel-cost-vs-n_samples scaling data
@@ -28,6 +30,21 @@ quantum work is complete -- items here are known-open, not forgotten.
   multi-class" (Day 2) is QSVM-only unless someone else picks this up.
 
 ## Decided (no action needed, recorded for reference)
+
+- **EMBER 2018 support — done, binary + multiclass** (2026-07-20). Source:
+  official EMBER tarball `ember_dataset_2018_2.tar.bz2`, test split
+  `test_features.jsonl` (200k rows, 100k malware/100k benign, with sha256 and
+  avclass labels). Vectorized via NEW vendored LIEF-free extractor
+  `src/common/ember_vectorize.py` (feature version 2, 2381 dims) → cached
+  parquet `data/ember/ember2018_test.parquet`. Binary: 100k/100k balanced.
+  Multiclass: `data.ember_family_xy` with balanced top-15 avclass families
+  (min_per_class=500, cap max_families=15, downsample-to-balance); smallest
+  kept family wapomi=955. Mirrors CIC's malware-only design. Implemented:
+  `common/data.py::load_ember`, `common/ember_vectorize.py` (vendored
+  extractor), `task_xy(..., dataset=)` supports both binary and multiclass,
+  `split_paths()` (ember files dataset-prefixed), `--dataset {cic,ember}` on
+  both CLIs. End-to-end multiclass probe passed (~1.1s kernel at n_components=1,
+  120 samples). Only full sweeps remain.
 
 - **MLflow logging gaps — done** (2026-07-14, see
   `docs/reports/w2_jul-14_6-components_multi.md`'s intro): per-class F1
