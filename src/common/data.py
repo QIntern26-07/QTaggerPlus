@@ -16,6 +16,25 @@ def load_cic_malmem(csv_path: str) -> pd.DataFrame:
     return pd.read_csv(csv_path)
 
 
+def load_ember(parquet_path: str = "data/ember/ember2018_test.parquet") -> pd.DataFrame:
+    """Read the cached EMBER 2018 test parquet (see scripts/prepare_ember.py).
+
+    Columns: F1..F2381 vectorized features (feature version 2) + int `label`
+    (0 benign / 1 malicious) + `avclass` family string + `sha256`.
+    """
+    return pd.read_parquet(parquet_path)
+
+
+_EMBER_NON_FEATURE = ("label", "avclass", "sha256")
+
+
+def _ember_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop non-feature EMBER columns, tolerating their absence (e.g. in toy
+    test frames that only carry `label`)."""
+    cols = [c for c in _EMBER_NON_FEATURE if c in df.columns]
+    return df.drop(columns=cols)
+
+
 def build_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     """Split a raw frame into features X, binary y, and multiclass (family) y.
 
@@ -52,20 +71,95 @@ def malware_family_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     return X, y_family
 
 
-def task_xy(df: pd.DataFrame, task: str) -> tuple[pd.DataFrame, pd.Series]:
+def ember_family_xy(
+    df: pd.DataFrame,
+    min_per_class: int = 500,
+    max_families: int = 15,
+    seed: int = 42,
+) -> tuple[pd.DataFrame, pd.Series]:
+    """Features and balanced K-class avclass-family labels for EMBER multiclass.
+
+    EMBER's avclass distribution is heavy-tailed (unlike CIC's naturally
+    ~1.7x-balanced families), so structure is imposed: keep malware rows with a
+    non-empty avclass, keep families with count >= min_per_class, cap at the
+    top `max_families` by count, then downsample every kept family to the
+    smallest kept count so the returned pool is exactly balanced (1.0x).
+    Deterministic under `seed`. Benign is excluded (binary task's job).
+    """
+    df = df.reset_index(drop=True)
+    m = df[(df["label"] == 1) & df["avclass"].notna() & (df["avclass"].astype(str) != "")]
+    counts = m["avclass"].value_counts()
+    counts = counts.sort_index().sort_values(ascending=False, kind="stable")
+    eligible = counts[counts >= min_per_class]
+    kept = eligible.head(max_families)
+    if len(kept) == 0:
+        raise ValueError(
+            f"no avclass family reaches min_per_class={min_per_class}"
+        )
+    per_class = int(kept.min())
+    keep_names = list(kept.index)
+    rng = np.random.RandomState(seed)
+    parts = []
+    for name in keep_names:
+        idx = m.index[m["avclass"] == name].to_numpy()
+        chosen = rng.choice(idx, size=per_class, replace=False)
+        parts.append(chosen)
+    sel = np.concatenate(parts)
+    sel.sort()
+    dfm = df.loc[sel].reset_index(drop=True)
+    X = _ember_features(dfm)
+    y = pd.Series(
+        LabelEncoder().fit_transform(dfm["avclass"]), name="y_family"
+    )
+    return X, y
+
+
+def task_xy(
+    df: pd.DataFrame, task: str, dataset: str = "cic"
+) -> tuple[pd.DataFrame, pd.Series]:
     """Return the (X, y) row set a task operates on. Single source of truth so
     the classical and quantum CLIs can never drift on what a task means (a drift
     would silently misalign their shared subsample/fold contract).
 
-    binary: all rows, Benign-vs-Malware label.
-    multiclass: malware-only rows, 15-class family label (see malware_family_xy).
+    cic binary: all rows, Benign-vs-Malware label.
+    cic multiclass: malware-only rows, 15-class family label (see malware_family_xy).
+    ember binary: all rows, `label` column as int 0/1.
+    ember multiclass: balanced top-15 avclass family label (see ember_family_xy).
     """
-    if task == "binary":
-        X, y_binary, _ = build_xy(df)
-        return X, y_binary
-    if task == "multiclass":
-        return malware_family_xy(df)
-    raise ValueError(f"unknown task: {task}")
+    if dataset == "cic":
+        if task == "binary":
+            X, y_binary, _ = build_xy(df)
+            return X, y_binary
+        if task == "multiclass":
+            return malware_family_xy(df)
+        raise ValueError(f"unknown task: {task}")
+    if dataset == "ember":
+        if task == "binary":
+            X = _ember_features(df)
+            y = df["label"].astype(int).rename("y_binary")
+            return X, y
+        if task == "multiclass":
+            return ember_family_xy(df)
+        raise ValueError(f"unknown task: {task}")
+    raise ValueError(f"unknown dataset: {dataset}")
+
+
+def split_paths(dataset: str, task: str) -> tuple[str, str]:
+    """Paths for the persisted quantum subsample index and outer folds.
+
+    CIC keeps its original un-prefixed filenames — those JSONs are committed and
+    are the existing contract between the classical and quantum CLIs. Other
+    datasets get dataset-prefixed names alongside them.
+    """
+    if dataset == "cic":
+        return (
+            f"data/splits/quantum_sample_idx_{task}.json",
+            f"data/splits/cic_{task}_quantum_folds.json",
+        )
+    return (
+        f"data/splits/{dataset}_quantum_sample_idx_{task}.json",
+        f"data/splits/{dataset}_{task}_quantum_folds.json",
+    )
 
 
 def make_outer_folds(y, n_splits: int = 5, seed: int = 42):

@@ -21,10 +21,13 @@ def aggregate_records(records) -> dict:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="CIC-MalMem classical baselines")
-    p.add_argument("--csv", default="data/cic_malmem/Obfuscated-MalMem2022.csv")
+    p = argparse.ArgumentParser(description="Classical baselines (CIC-MalMem / EMBER)")
+    p.add_argument("--dataset", choices=["cic", "ember"], default="cic")
+    p.add_argument("--csv", default=None,
+                   help="dataset file; defaults per --dataset (CIC csv / EMBER parquet).")
     p.add_argument("--models", nargs="+", default=list(MODEL_NAMES))
-    p.add_argument("--tasks", nargs="+", default=["binary", "multiclass"])
+    p.add_argument("--tasks", nargs="+", default=None,
+                   help="tasks to run; defaults to binary + multiclass for both datasets.")
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--trials", type=int, default=25)
     p.add_argument("--inner-splits", type=int, default=3)
@@ -42,8 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="PCA target dimensionality (aligns with quantum qubit count). "
              "Omit to disable PCA.",
     )
-    p.add_argument("--out", default="results/cic/metrics.csv")
-    p.add_argument("--predictions-dir", default="results/cic")
+    p.add_argument("--out", default=None,
+                   help="metrics CSV; defaults to results/<dataset>/metrics.csv")
+    p.add_argument("--predictions-dir", default=None,
+                   help="per-fold predictions dir; defaults to results/<dataset>")
     p.add_argument(
         "--load-quantum-splits", action="store_true",
         help="run on the exact row subsample and folds a prior quantum run "
@@ -58,47 +63,53 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     logger.add("run.log", rotation="10 MB")
-    df = data.load_cic_malmem(args.csv)
+    if args.dataset == "ember":
+        df = data.load_ember(args.csv or "data/ember/ember2018_test.parquet")
+    else:
+        df = data.load_cic_malmem(args.csv or "data/cic_malmem/Obfuscated-MalMem2022.csv")
+    tasks = args.tasks or ["binary", "multiclass"]
+    dataset_name = {"cic": "cic-malmem", "ember": "ember-2018"}[args.dataset]
+    out = args.out or f"results/{args.dataset}/metrics.csv"
+    predictions_dir = args.predictions_dir or f"results/{args.dataset}"
 
     rows = []
-    for task in args.tasks:
-        # Per-task row set: binary = all rows, multiclass = malware-only 15-class
-        # (see data.task_xy). Must match what the quantum CLI persisted, so a
-        # multiclass sample_idx indexes into the malware-only frame here too.
-        X, y = data.task_xy(df, task)
+    for task in tasks:
+        # Per-task row set (binary vs. malware-family multiclass) is defined by
+        # data.task_xy per dataset. Must match what the quantum CLI persisted, so a
+        # multiclass sample_idx indexes into the same per-task frame here too.
+        X, y = data.task_xy(df, task, dataset=args.dataset)
         Path("data/splits").mkdir(parents=True, exist_ok=True)
+        sample_path, quantum_folds_path = data.split_paths(args.dataset, task)
         if args.load_quantum_splits:
-            sample_idx = data.load_sample_idx(
-                f"data/splits/quantum_sample_idx_{task}.json"
-            )
+            sample_idx = data.load_sample_idx(sample_path)
             X = X.iloc[sample_idx].reset_index(drop=True)
             y = y.iloc[sample_idx].reset_index(drop=True)
             # Reuse the exact folds the quantum run computed over this same
             # subsample, instead of freshly computing (and silently
             # overwriting them with) different folds.
-            folds = data.load_folds(f"data/splits/cic_{task}_quantum_folds.json")
+            folds = data.load_folds(quantum_folds_path)
         else:
             folds = data.make_outer_folds(y, n_splits=args.folds, seed=args.seed)
-            data.save_folds(folds, f"data/splits/cic_{task}_folds.json")
+            data.save_folds(folds, f"data/splits/{args.dataset}_{task}_folds.json")
         for name in args.models:
             records = run.run_nested_cv(
                 X, y, task=task, name=name, folds=folds,
                 n_trials=args.trials, seed=args.seed, use_mlflow=args.mlflow,
-                inner_splits=args.inner_splits, dataset_name="cic-malmem",
+                inner_splits=args.inner_splits, dataset_name=dataset_name,
                 n_jobs=args.n_jobs, tracking_uri=args.tracking_uri,
                 extra_params={"framework": "classical",
                               "n_components": args.n_components},
                 n_components=args.n_components,
             )
             rows.append(aggregate_records(records))
-            Path(args.predictions_dir).mkdir(parents=True, exist_ok=True)
-            pred_path = f"{args.predictions_dir}/{name}_{task}_predictions.npz"
+            Path(predictions_dir).mkdir(parents=True, exist_ok=True)
+            pred_path = f"{predictions_dir}/{name}_{task}_predictions.npz"
             data.save_predictions(records, pred_path)
             logger.info(f"wrote per-fold predictions to {pred_path}")
 
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).to_csv(args.out, index=False)
-    logger.info(f"wrote {len(rows)} model x task rows to {args.out}")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_csv(out, index=False)
+    logger.info(f"wrote {len(rows)} model x task rows to {out}")
     return 0
 
 
