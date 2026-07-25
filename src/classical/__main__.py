@@ -66,7 +66,17 @@ def main(argv=None) -> int:
     if args.dataset == "ember":
         df = data.load_ember(args.csv or "data/ember/ember2018_test.parquet")
     elif args.dataset == "sorel":
-        df = data.load_sorel(args.csv or "data/sorel/sorel_quantum_subset.parquet")
+        sorel_path = args.csv or "data/sorel/sorel_quantum_subset.parquet"
+        if not Path(sorel_path).exists():
+            raise SystemExit(
+                f"--dataset sorel: {sorel_path} does not exist. SOREL-20M features "
+                "require downloading its 71.6 GiB LMDB feature store "
+                "(s3://sorel-20m/09-DEC-2020/processed-data/ember_features/data.mdb), "
+                "which has not been fetched — this is a deliberate, documented decision, "
+                "not a bug. See docs/reports/w4_sorel_labelling_decision.md for the "
+                "labelling design and what remains (feature-subset acquisition + sweep)."
+            )
+        df = data.load_sorel(sorel_path)
     else:
         df = data.load_cic_malmem(args.csv or "data/cic_malmem/Obfuscated-MalMem2022.csv")
     tasks = args.tasks or ["binary", "multiclass"]

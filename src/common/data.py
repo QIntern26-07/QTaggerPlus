@@ -118,7 +118,13 @@ _SOREL_NON_FEATURE = ("label", "dominant_tag", "sha256")
 
 
 def load_sorel(parquet_path: str = "data/sorel/sorel_quantum_subset.parquet") -> pd.DataFrame:
-    """Read the cached SOREL-20M subset parquet (see scripts/make_sorel_subset.py).
+    """Read the cached SOREL-20M subset parquet.
+
+    No script builds this file yet — `scripts/fetch_sorel_meta.py` and
+    `scripts/sorel_label_stats.py` handle metadata acquisition and label-space
+    analysis (see docs/reports/w4_sorel_labelling_decision.md), but the
+    feature-subset builder itself (pulling vectors out of the 71.6 GiB LMDB
+    store into this parquet) is still to come.
 
     Columns: F1..FN vectorized features + int `label` (0 benign / 1 malware) +
     `dominant_tag` (multiclass subsets only) + `sha256`.
@@ -173,7 +179,6 @@ def task_xy(
             # this is exactly what the subsample/fold contract requires.
             y = pd.Series(LabelEncoder().fit_transform(dfm["dominant_tag"]),
                           name="y_family")
-            assert len(X) == len(y), "sorel multiclass X/y length mismatch"
             return X, y
         raise ValueError(f"unknown task: {task}")
     raise ValueError(f"unknown dataset: {dataset}")

@@ -135,12 +135,16 @@ def run_quantum_cv(X, y, task, folds, n_components, grid=None, seed=42,
     sweep-level parent run that gets the mean/std aggregate across folds."""
     grid = grid or DEFAULT_GRID
     records = []
-    sweep_tag = f"qsvm-{task}-nc{n_components}"
+    encoding_tag = (
+        grid["encoding"][0] if len(grid["encoding"]) == 1 else "joint"
+    )
+    sweep_tag = f"qsvm-{task}-nc{n_components}-{encoding_tag}"
     parent_cm = (
         mlflow_run(
             "qtaggerplus", f"qsvm-{task}-nc{n_components}-sweep",
             {"framework": "quantum", "model": "qsvm", "task": task,
-             "dataset": dataset_name, "n_components": n_components},
+             "dataset": dataset_name, "n_components": n_components,
+             "encoding": encoding_tag, "n_jobs": n_jobs},
             tracking_uri=tracking_uri, tags={"sweep": sweep_tag},
         )
         if use_mlflow else contextlib.nullcontext()

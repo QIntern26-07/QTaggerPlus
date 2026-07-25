@@ -247,9 +247,10 @@ predictor in those folds. See analysis.)
 ## Key findings
 
 1. **First EMBER result: classical SVM clearly beats QSVM on binary malware
-   detection**, at every n_components tested (macro-F1 gap 0.078–0.159, widening
-   with more PCA components) — consistent in direction with the CIC findings but
-   a larger gap than CIC's near-ceiling binary task showed.
+   detection**, at every n_components tested (macro-F1 gap vs the better-scoring
+   QSVM encoding at each nc: 0.073–0.159, widening with more PCA components) —
+   consistent in direction with the CIC findings but a larger gap than CIC's
+   near-ceiling binary task showed.
 
 2. **QSVM partially collapses to an always-malicious predictor at nc=1** (class-0
    F1 = 0.000 in 3/5 folds, both encodings) on EMBER's ~8:1 imbalanced binary

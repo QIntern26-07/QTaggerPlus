@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 from common import data
@@ -201,12 +202,6 @@ def test_split_paths_ember_is_dataset_prefixed():
     sample, folds = data.split_paths("ember", "binary")
     assert sample == "data/splits/ember_quantum_sample_idx_binary.json"
     assert folds == "data/splits/ember_binary_quantum_folds.json"
-
-
-import numpy as np
-import pandas as pd
-
-from common import data
 
 
 def _sorel_frame(n=40, n_features=6):

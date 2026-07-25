@@ -22,11 +22,16 @@ _LABEL_COLS = ("label", "avclass", "sha256")
 
 def _select_rows(labels: pd.DataFrame, binary_n: int, min_per_class: int,
                  max_families: int, seed: int) -> tuple[np.ndarray, list[str], int]:
-    """Row positions to keep: a balanced family pool plus a stratified binary pool.
+    """Row positions to keep: a family pool plus a stratified binary pool.
 
-    Family selection mirrors `common.data.ember_family_xy` exactly (>= min_per_class,
-    top max_families by count, downsample to the smallest kept count) so the subset
-    reproduces the same label space the full-frame path would produce.
+    Family SELECTION (which families qualify: >= min_per_class, top max_families
+    by count) mirrors `common.data.ember_family_xy` exactly, so this reproduces
+    the same family LABEL SPACE the full-frame path would produce. It does NOT
+    reproduce the same row set: the binary pool below is drawn independently of
+    the family pool and can inject extra malware rows into families already
+    selected, so this module's own written multiclass pool is not guaranteed
+    balanced. `ember_family_xy` restores exact balance later, at load time, by
+    re-downsampling every kept family to the smallest kept count.
     """
     rng = np.random.RandomState(seed)
     mal = labels[(labels["label"] == 1)

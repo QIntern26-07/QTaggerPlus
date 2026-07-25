@@ -13,7 +13,8 @@ say so plainly rather than rounding up. This week's headline is largely negative
 tried not to soften it.
 
 **Reproducing the numbers.** `scripts/export_mlflow_runs.py` was re-run before writing this
-report; `results/mlflow_runs.csv` now holds 868 runs. `cic-malmem` (225 binary + 532
+report; `results/mlflow_runs.csv` held 868 runs at that point, later reduced to 866 by the
+removal of two orphaned duplicate rows documented in §6. `cic-malmem` (225 binary + 532
 multiclass rows) and `ember-2018` (57 binary + 54 multiclass rows) are both present.
 `sorel-20m` rows are **absent** — expected, since no SOREL sweep was run this week (see Day
 25/26 below). `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest` was run before writing this
@@ -92,7 +93,8 @@ classical SVM replayed on the identical rows/folds via `--load-quantum-splits`. 
 | 3 | 0.4924 | 0.5084 | **0.6306** |
 | 6 | 0.5138 | 0.5137 | **0.6724** |
 
-SVM wins at every nc, by a widening margin (+0.078 at nc=1 → +0.159 at nc=6). At nc=1, QSVM
+SVM wins at every nc, by a widening margin against the better-scoring QSVM encoding at each
+nc (+0.073 at nc=1 [vs iqp] → +0.122 at nc=3 [vs iqp] → +0.159 at nc=6 [vs angle]). At nc=1, QSVM
 partially collapses to an always-malicious predictor: class-0 (benign) F1 is exactly 0.000 in
 3 of 5 outer folds, both encodings, masked by a superficially reasonable raw accuracy
 (0.73-0.74) — the reason this project reports macro-F1, not accuracy, as the headline metric.
@@ -158,11 +160,12 @@ point outside this report's required table):
 smaller than either encoding's own fold-to-fold std** (deltas 0.0009-0.0122 against stds of
 0.006-0.018). This does not sharpen or grow monotonically with qubit count — it peaks at
 nc=3, not at nc=8. Contrast this with EMBER 15-class (§1), where iqp's edge over angle was
-large and clean at every nc tested (+0.089 at nc=3, +0.096 at nc=6, both well outside either
-encoding's own std). **The angle-vs-iqp difference is dataset-dependent, not a fixed property
-of the encoding itself** — the same pair of circuits produces a decisive, trustworthy
-separation on one dataset and a directionally-consistent-but-statistically-thin one on
-another. nc=8 did not rescue CIC 15-class either: 0.0740 (iqp) sits barely above the ~0.067
+large and clean at nc=3 and nc=6 (+0.089, +0.096), though the two are within noise of each
+other at nc=1 (angle 0.1688 vs iqp 0.1541). **The angle-vs-iqp difference is dataset-dependent,
+not a fixed property of the encoding itself** — the same pair of circuits produces a decisive,
+trustworthy separation on one dataset (at higher nc) and a directionally-consistent-but-
+statistically-thin one on another. nc=8 did not rescue CIC 15-class either: 0.0739 (iqp) sits
+barely above the ~0.067
 random baseline, essentially the same place nc=6 (0.0794) and nc=1 (0.0559) sit. **More
 qubits is not the missing ingredient for CIC 15-class.**
 
@@ -205,10 +208,12 @@ unmotivated scope creep without this context:
   this streams **column-wise** instead: read the three label columns cheaply, decide which
   rows are needed, then read feature columns `col_batch` (default 200) at a time and keep
   only the needed rows. Peak memory scales as `n_rows * col_batch * 4 bytes` rather than the
-  full matrix — the recorded peak for this approach was **1.36 GB**, against ~1.9 GB for the
-  naive full-frame load. `scripts/make_ember_subset.py` runs this once, offline, producing
-  the 50 MB `data/ember/ember2018_quantum_subset.parquet` that every EMBER sweep in this
-  report actually reads.
+  full matrix — re-measured for this report via `/usr/bin/time -v` on the real
+  `scripts/make_ember_subset.py` run: maximum resident set size **1,200,452 KB (~1.14 GiB /
+  1.23 GB)**, elapsed 2.53s, against ~1.9 GB for the naive full-frame load. Raw log:
+  `docs/reports/logs/w4_ember_subset/build.txt`. `scripts/make_ember_subset.py` runs this
+  once, offline, producing the 50 MB `data/ember/ember2018_quantum_subset.parquet` that every
+  EMBER sweep in this report actually reads.
 - **Chunked read of SOREL's `meta.db` (19,724,997 rows).** A full-table `pd.read_sql_query`
   read of all 13 columns — including a 64-character hex `sha256` string per row as a Python
   object — was estimated at roughly 3.2-3.3 GiB (sha256 column alone ~1.3-1.4 GiB, ~12 int64
@@ -225,24 +230,26 @@ unmotivated scope creep without this context:
 
 ---
 
-## 6. Anomaly carried forward: orphaned MLflow fold rows
+## 6. Anomaly resolved: orphaned MLflow fold rows removed
 
-`results/mlflow_runs.csv` holds **two orphaned child (fold-level) run rows** for
+`results/mlflow_runs.csv` held **two orphaned child (fold-level) run rows** for
 `(dataset=ember-2018, task=binary, n_components=1, encoding=angle)` — 7 child rows logged
 where the raw stdout log shows exactly 5 "outer fold" iterations. Root cause (confirmed, not
 a code bug): the nc=1 angle sweep's first invocation was interrupted mid-run and relaunched;
-the two extra rows are orphaned folds from that first, interrupted launch. In the CSV they sit
-at UTC `03:33:13` (f1_macro=0.470899) and `03:33:59` (f1_macro=0.399101), and both **predate
-the parent run's own `start_time` of 03:34:36**. Every other sweep in this week's work (18 of
-19 quantum invocations) has exactly the expected child-row count with no such orphans.
+the two extra rows were orphaned folds from that first, interrupted launch. In the CSV they
+sat at UTC `03:33:13` (f1_macro=0.470899) and `03:33:59` (f1_macro=0.399101), both
+byte-identical duplicates of rows from the genuine relaunch, so their removal is lossless.
+Every other sweep in this week's work (18 of 19 quantum invocations) has exactly the expected
+child-row count with no such orphans.
 
 The parent aggregate metrics used throughout §1 (`f1_macro_mean`, `_std`, etc.) match a
 hand-computed mean of the 5 real "fold done" lines in the raw stdout log exactly, to 6 decimal
-places — **the reported aggregates are unaffected.** For anyone re-deriving fold-level
-statistics directly from the CSV rather than trusting the parent aggregates: **the filtering
-rule is to drop any child row whose `start_time` precedes its own parent run's `start_time`**
-— that discards exactly the two orphaned rows from the interrupted-and-relaunched sweep and
-nothing else.
+places — **the reported aggregates were unaffected.** The two orphaned rows have since been
+**removed from the committed CSV**; the group now holds exactly the 5 genuine child rows
+(mean f1_macro 0.4533, vs. 0.4482 if a reader had naively averaged all 7). Note that the
+exported CSV carries no `run_id`/`parentRunId` column, so a start-time-ordering filter rule
+is not something a reader of this CSV could execute themselves — this was a one-time cleanup
+of the source file, not a documented filtering procedure.
 
 ---
 
@@ -293,6 +300,7 @@ near-total collapse, but it does not identify the real cause, and it does not cl
 classical-quantum gap — it only changes collapse into a wide, stable loss. The encoding
 question is closed with a weaker verdict than Week 3 implied: iqp's CIC 15-class edge is
 real in direction but statistically thin at every qubit count tried, up to and including the
-newly-reached nc=8, in contrast to a large, clean iqp advantage on EMBER 15-class. SOREL's
+newly-reached nc=8, in contrast to a large, clean iqp advantage on EMBER 15-class at nc=3 and
+nc=6 (the two encodings are within noise of each other at EMBER nc=1). SOREL's
 labelling question is settled; its features are not fetched and no sweep has run. CTGAN
 remains blocked on Team B with nothing new to report.

@@ -34,6 +34,7 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+addopts = "-p no:launch_testing -p no:launch_ros"
 
 [build-system]
 requires = ["hatchling"]
