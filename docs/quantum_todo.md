@@ -15,10 +15,6 @@ quantum work is complete -- items here are known-open, not forgotten.
   be local before any row can be read — not yet downloaded — and no QSVM
   sweep has been run against it. `meta.db` (3.5 GiB, labels only) has been
   fetched and analyzed.
-- [ ] **EMBER experiments not yet run.** Loader + CLI support exist for both
-  binary and multiclass (see Decided); only the full sweeps (n≈1000, encodings
-  angle+iqp, n_components 1/3/6) remain to execute beyond the end-to-end
-  multiclass probe.
 - [ ] **VQC is not implemented and not planned to be implemented by this
   contributor.** Only QSVM exists in `src/quantum/`. Flag to the team/mentors
   that Week 2's "extend the existing binary QSVM/VQC architecture toward
@@ -26,6 +22,18 @@ quantum work is complete -- items here are known-open, not forgotten.
 
 ## Decided (no action needed, recorded for reference)
 
+- **EMBER experiments — done** (2026-07-25/26,
+  `docs/reports/w4_jul-25_ember_binary.md`, `docs/reports/w4_jul-26_ember_multiclass.md`).
+  Full sweeps (n=1000, `angle`+`iqp` as separate single-encoding invocations, n_components
+  1/3/6, quantum first then classical SVM replayed on the identical `--load-quantum-splits`
+  rows/folds) ran for both binary and 15-class multiclass. Binary: classical SVM wins at
+  every nc (0.5138 vs 0.6724 macro-F1 at nc=6) — overturns the Week 3 CIC reading of
+  "quantum ties classical on binary," which held only because CIC's binary task is
+  near-ceiling for every model. 15-class: classical SVM wins by the largest gap measured in
+  the project (0.27 at nc=6), but QSVM does not collapse the way it did on CIC 15-class
+  (recognizes 8-9/15 families even at nc=1, 14-15/15 from nc=3 up) — since EMBER's families
+  are exactly balanced (955/class) and CIC's are not, this rules out class imbalance as the
+  sole cause of CIC's collapse, though the actual cause remains unidentified.
 - **Subsample sizing decision — done** (2026-07-25,
   `docs/reports/w4_subsample_sizing_decision.md`). Inverted the Day 1
   kernel-cost-vs-n_samples power law (`t(n) = t_ref * (n/n_ref)**exponent`,
