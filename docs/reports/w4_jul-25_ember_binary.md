@@ -192,10 +192,11 @@ Class 0 = benign (minority, ~11% of the 1000-row subsample), class 1 = malicious
 | 6 | qsvm | iqp | 0.271 | 0.757 |
 | 6 | svm | — | 0.434 | 0.911 |
 
-(angle nc=1 class-0 mean computed from raw per-fold values 0.000, 0.216, 0.000,
-0.235, 0.000; iqp nc=1 from 0.000, 0.222, 0.243, 0.000, 0.000 — see raw logs.
-Class 0 goes to exactly 0.000 F1 in 3/5 angle folds and 3/5 iqp folds at nc=1:
-QSVM collapses to an always-malicious predictor in those folds. See analysis.)
+(angle nc=1 class-0 mean computed from raw per-fold values, in chronological
+fold order: 0.000, 0.216, 0.235, 0.000, 0.000; iqp nc=1 from 0.000, 0.222,
+0.243, 0.000, 0.000 — see raw logs. Class 0 goes to exactly 0.000 F1 in 3/5
+angle folds and 3/5 iqp folds at nc=1: QSVM collapses to an always-malicious
+predictor in those folds. See analysis.)
 
 ## Analysis
 
@@ -266,20 +267,24 @@ QSVM collapses to an always-malicious predictor in those folds. See analysis.)
 
 ## Anomalies / things I was unsure about
 
-- **The exported MLflow CSV contains more child (fold-level) run rows than actual
-  outer folds** for several quantum sweeps (e.g. 7 child rows logged for the nc=1
-  angle sweep, where the stdout log shows exactly 5 "outer fold" iterations). The
-  extra rows carry duplicate `f1_macro` values that exactly match values already
-  present among the real 5 folds (e.g. 0.470899 appears 3 times), and — critically
-  — the **parent aggregate metrics** (`f1_macro_mean`, `_std`, etc., used
-  throughout the results tables above) match a hand-computed mean of the 5
-  "fold done" lines in the raw stdout log exactly, to 6 decimal places, in every
-  case checked. So the aggregate numbers reported here are trustworthy, but I did
-  not track down why `export_mlflow_runs.py` (or the underlying MLflow run
-  bookkeeping in `quantum/run.py`) produces extra short-duration (~0.15s) child
-  runs beyond the 5 real per-fold runs. This did not affect anything reported
-  above but is worth a look before EMBER multiclass or further sweeps rely on
-  per-fold (not aggregate) CSV rows.
+- **The exported MLflow CSV contains 2 extra child (fold-level) run rows for
+  exactly one sweep — nc=1, angle — out of all nine nc x encoding x model
+  combinations run.** 7 child rows are logged for that sweep where the stdout
+  log shows exactly 5 "outer fold" iterations; every other sweep has exactly the
+  expected number of child rows. **Root cause (confirmed, not code):** the nc=1
+  angle sweep's first invocation was interrupted mid-run and relaunched. The two
+  extra rows are orphaned folds from that first, interrupted launch — in
+  `results/mlflow_runs.csv` they sit at UTC `03:33:13` (f1_macro=0.470899) and
+  `03:33:59` (f1_macro=0.399101), and both **predate the parent run's own
+  `start_time` of 03:34:36**. Nothing is wrong with `export_mlflow_runs.py` or
+  `quantum/run.py`. The **parent aggregate metrics** (`f1_macro_mean`, `_std`,
+  etc., used throughout the results tables above) match a hand-computed mean of
+  the 5 real "fold done" lines in the raw stdout log exactly, to 6 decimal
+  places, so nothing reported above is affected. **Filtering rule for a future
+  reader** re-deriving fold-level statistics directly from the CSV: drop any
+  child row whose `start_time` precedes its parent run's `start_time` — that
+  discards exactly the orphaned rows from an interrupted-and-relaunched sweep
+  and nothing else.
 - I did not independently re-verify EMBER's label convention (`0`=benign,
   `1`=malicious) against EMBER's own documentation — I inferred it from the raw
   class counts (16,014 vs. 2,000, with 2,000 matching Endgame's published EMBER
