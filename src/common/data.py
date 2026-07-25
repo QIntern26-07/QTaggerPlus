@@ -114,6 +114,23 @@ def ember_family_xy(
     return X, y
 
 
+_SOREL_NON_FEATURE = ("label", "dominant_tag", "sha256")
+
+
+def load_sorel(parquet_path: str = "data/sorel/sorel_quantum_subset.parquet") -> pd.DataFrame:
+    """Read the cached SOREL-20M subset parquet (see scripts/make_sorel_subset.py).
+
+    Columns: F1..FN vectorized features + int `label` (0 benign / 1 malware) +
+    `dominant_tag` (multiclass subsets only) + `sha256`.
+    """
+    return pd.read_parquet(parquet_path)
+
+
+def _sorel_features(df: pd.DataFrame) -> pd.DataFrame:
+    cols = [c for c in _SOREL_NON_FEATURE if c in df.columns]
+    return df.drop(columns=cols)
+
+
 def task_xy(
     df: pd.DataFrame, task: str, dataset: str = "cic"
 ) -> tuple[pd.DataFrame, pd.Series]:
@@ -125,6 +142,8 @@ def task_xy(
     cic multiclass: malware-only rows, 15-class family label (see malware_family_xy).
     ember binary: all rows, `label` column as int 0/1.
     ember multiclass: balanced top-15 avclass family label (see ember_family_xy).
+    sorel binary: all rows, `label` column as int 0/1.
+    sorel multiclass: rows with a non-null `dominant_tag`, that column label-encoded.
     """
     if dataset == "cic":
         if task == "binary":
@@ -140,6 +159,22 @@ def task_xy(
             return X, y
         if task == "multiclass":
             return ember_family_xy(df)
+        raise ValueError(f"unknown task: {task}")
+    if dataset == "sorel":
+        if task == "binary":
+            X = _sorel_features(df)
+            y = df["label"].astype(int).rename("y_binary")
+            return X, y
+        if task == "multiclass":
+            dfm = df[df["dominant_tag"].notna()].reset_index(drop=True)
+            X = _sorel_features(dfm)
+            # X and y are both derived positionally from dfm (post-filter,
+            # post-reset-index) in this same order, so they stay row-aligned —
+            # this is exactly what the subsample/fold contract requires.
+            y = pd.Series(LabelEncoder().fit_transform(dfm["dominant_tag"]),
+                          name="y_family")
+            assert len(X) == len(y), "sorel multiclass X/y length mismatch"
+            return X, y
         raise ValueError(f"unknown task: {task}")
     raise ValueError(f"unknown dataset: {dataset}")
 

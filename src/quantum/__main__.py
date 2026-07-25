@@ -14,7 +14,7 @@ from quantum.run import run_quantum_cv, timing_probe
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="QSVM baselines (CIC-MalMem / EMBER)")
-    p.add_argument("--dataset", choices=["cic", "ember"], default="cic")
+    p.add_argument("--dataset", choices=["cic", "ember", "sorel"], default="cic")
     p.add_argument("--csv", default=None,
                    help="dataset file; defaults per --dataset (CIC csv / EMBER parquet).")
     p.add_argument("--tasks", nargs="+", default=["binary"])
@@ -44,6 +44,8 @@ def main(argv=None) -> int:
     logger.add("run.log", rotation="10 MB")
     if args.dataset == "ember":
         df = data.load_ember(args.csv or "data/ember/ember2018_test.parquet")
+    elif args.dataset == "sorel":
+        df = data.load_sorel(args.csv or "data/sorel/sorel_quantum_subset.parquet")
     else:
         df = data.load_cic_malmem(args.csv or "data/cic_malmem/Obfuscated-MalMem2022.csv")
     Path("data/splits").mkdir(parents=True, exist_ok=True)
@@ -93,7 +95,8 @@ def main(argv=None) -> int:
         data.save_folds(folds, folds_path)
         grid = {"encoding": args.encodings, "bandwidth": [None],
                 "C": [0.1, 1.0, 10.0], "class_weight": [None, "balanced"]}
-        dataset_name = {"cic": "cic-malmem", "ember": "ember-2018"}[args.dataset]
+        dataset_name = {"cic": "cic-malmem", "ember": "ember-2018",
+                        "sorel": "sorel-20m"}[args.dataset]
         run_quantum_cv(X, y, task, folds, args.n_components, grid=grid,
                        seed=args.seed, use_mlflow=args.mlflow,
                        tracking_uri=args.tracking_uri, n_jobs=args.n_jobs,
