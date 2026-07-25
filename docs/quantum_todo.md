@@ -6,11 +6,15 @@ quantum work is complete -- items here are known-open, not forgotten.
 
 ## Open
 
-- [ ] **SOREL-20M — not started.** No loader, not downloaded. Its labels are 11
-  multi-label behavior tags (no single family class), so plain stratification
-  does not apply — decide binary-only vs. dominant-tag class vs. iterative
-  multi-label stratification before building anything. EMBER's half is fully
-  resolved (see Decided below).
+- [ ] **SOREL-20M — labelling decided, features not fetched.** The multiclass
+  label question is CLOSED: dominant-tag argmax over the 11 raw behavior-tag
+  counts, ties broken by declared column order, all-zero-tag rows dropped
+  (see `docs/reports/w4_sorel_labelling_decision.md`). What remains open is
+  the feature store: `ember_features/data.mdb` is a single 71.6 GiB
+  memory-mapped LMDB with no key-level remote access, so the whole file must
+  be local before any row can be read — not yet downloaded — and no QSVM
+  sweep has been run against it. `meta.db` (3.5 GiB, labels only) has been
+  fetched and analyzed.
 - [ ] **EMBER experiments not yet run.** Loader + CLI support exist for both
   binary and multiclass (see Decided); only the full sweeps (n≈1000, encodings
   angle+iqp, n_components 1/3/6) remain to execute beyond the end-to-end
