@@ -1,0 +1,3 @@
+warning: `VIRTUAL_ENV=/home/al/Projects/Quantum-Error-Correction-Decoder/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+2026-07-25 14:21:24.429 | INFO     | __main__:main:84 - [probe] angle nc=8 kernel_train=7.354s fit=7.360s infer=3.835s
+2026-07-25 14:21:53.348 | INFO     | __main__:main:84 - [probe] iqp nc=8 kernel_train=18.565s fit=18.569s infer=10.335s
