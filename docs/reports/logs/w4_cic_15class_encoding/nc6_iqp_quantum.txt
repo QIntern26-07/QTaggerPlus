@@ -1,0 +1,11 @@
+warning: `VIRTUAL_ENV=/home/al/Projects/Quantum-Error-Correction-Decoder/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+2026-07-25 15:57:14.052 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 1/5
+2026-07-25 16:02:03.824 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0836
+2026-07-25 16:02:04.226 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 2/5
+2026-07-25 16:06:52.625 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0497
+2026-07-25 16:06:52.891 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 3/5
+2026-07-25 16:11:42.338 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.1029
+2026-07-25 16:11:42.626 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 4/5
+2026-07-25 16:16:34.042 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0786
+2026-07-25 16:16:34.307 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/multiclass] outer fold 5/5
+2026-07-25 16:21:25.720 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/multiclass] fold done: f1_macro=0.0821

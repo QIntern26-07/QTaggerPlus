@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 from common import data
@@ -201,3 +202,35 @@ def test_split_paths_ember_is_dataset_prefixed():
     sample, folds = data.split_paths("ember", "binary")
     assert sample == "data/splits/ember_quantum_sample_idx_binary.json"
     assert folds == "data/splits/ember_binary_quantum_folds.json"
+
+
+def _sorel_frame(n=40, n_features=6):
+    rng = np.random.RandomState(0)
+    df = pd.DataFrame(rng.rand(n, n_features).astype(np.float32),
+                      columns=[f"F{i + 1}" for i in range(n_features)])
+    df["sha256"] = [f"{i:064x}" for i in range(n)]
+    df["label"] = ([0, 1] * (n // 2))[:n]
+    df["dominant_tag"] = (["ransomware", "worm", "adware", "dropper"] * (n // 4))[:n]
+    return df
+
+
+def test_sorel_binary_task_xy_drops_non_features():
+    df = _sorel_frame()
+    X, y = data.task_xy(df, "binary", dataset="sorel")
+    assert not {"sha256", "label", "dominant_tag"} & set(X.columns)
+    assert set(y.unique()) == {0, 1}
+    assert len(X) == len(df)
+
+
+def test_sorel_multiclass_encodes_dominant_tag():
+    df = _sorel_frame()
+    X, y = data.task_xy(df, "multiclass", dataset="sorel")
+    assert y.nunique() == 4
+    assert y.dtype.kind in "iu"
+    assert len(X) == len(y)
+
+
+def test_sorel_split_paths_are_dataset_prefixed():
+    s, f = data.split_paths("sorel", "binary")
+    assert s == "data/splits/sorel_quantum_sample_idx_binary.json"
+    assert f == "data/splits/sorel_binary_quantum_folds.json"

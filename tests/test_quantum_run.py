@@ -64,6 +64,41 @@ def test_run_quantum_cv_logs_to_mlflow(tmp_path):
     assert "metrics.f1_macro_mean" in runs.columns
 
 
+def test_run_quantum_cv_logs_encoding_param_single_encoding(tmp_path):
+    import mlflow
+    X, y = _data()
+    folds = [(np.arange(0, 30), np.arange(30, 40))]
+    uri = f"file:{tmp_path / 'mlruns'}"
+    grid = {"encoding": ["angle"], "bandwidth": [None], "C": [1.0],
+            "class_weight": [None]}
+    run_quantum_cv(X, y, "binary", folds, n_components=1, grid=grid, seed=0,
+                   use_mlflow=True, tracking_uri=uri, n_jobs=2)
+    mlflow.set_tracking_uri(uri)
+    exp = mlflow.get_experiment_by_name("qtaggerplus")
+    runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+    parent = runs[runs["tags.mlflow.parentRunId"].isna()].iloc[0]
+    assert parent["params.encoding"] == "angle"
+    assert parent["params.n_jobs"] == "2"
+    assert parent["tags.sweep"] == "qsvm-binary-nc1-angle"
+
+
+def test_run_quantum_cv_logs_encoding_param_joint_grid(tmp_path):
+    import mlflow
+    X, y = _data()
+    folds = [(np.arange(0, 30), np.arange(30, 40))]
+    uri = f"file:{tmp_path / 'mlruns'}"
+    grid = {"encoding": ["angle", "iqp"], "bandwidth": [None], "C": [1.0],
+            "class_weight": [None]}
+    run_quantum_cv(X, y, "binary", folds, n_components=1, grid=grid, seed=0,
+                   use_mlflow=True, tracking_uri=uri)
+    mlflow.set_tracking_uri(uri)
+    exp = mlflow.get_experiment_by_name("qtaggerplus")
+    runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+    parent = runs[runs["tags.mlflow.parentRunId"].isna()].iloc[0]
+    assert parent["params.encoding"] == "joint"
+    assert parent["tags.sweep"] == "qsvm-binary-nc1-joint"
+
+
 def test_timing_probe_single_fit_reports_kernel_time():
     import numpy as np
     from quantum.run import timing_probe

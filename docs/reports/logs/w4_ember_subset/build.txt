@@ -1,0 +1,26 @@
+warning: `VIRTUAL_ENV=/home/al/Projects/Quantum-Error-Correction-Decoder/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+2026-07-25 18:30:13.923 | INFO     | common.ember_subset:build_ember_subset:74 - [ember-subset] keeping 18014 of 200000 rows, 15 families
+2026-07-25 18:30:15.909 | INFO     | __main__:main:27 - [ember-subset] wrote data/ember/ember2018_quantum_subset.parquet: {'rows': 18014, 'binary_rows': 4000, 'multiclass_rows': 15588, 'families': ['xtrat', 'zbot', 'ramnit', 'sality', 'ursnif', 'emotet', 'sivis', 'downloadguide', 'startsurf', 'lethic', 'wannacry', 'azorult', 'sdbot', 'kovter', 'wapomi']}
+	Command being timed: "uv run python scripts/make_ember_subset.py"
+	User time (seconds): 7.96
+	System time (seconds): 1.04
+	Percent of CPU this job got: 355%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.53
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1200452
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 440077
+	Voluntary context switches: 4068
+	Involuntary context switches: 964
+	Swaps: 0
+	File system inputs: 1075896
+	File system outputs: 97744
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

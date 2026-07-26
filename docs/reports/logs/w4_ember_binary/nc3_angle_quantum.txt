@@ -1,0 +1,11 @@
+warning: `VIRTUAL_ENV=/home/al/Projects/Quantum-Error-Correction-Decoder/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+2026-07-25 10:41:50.686 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/binary] outer fold 1/5
+2026-07-25 10:43:23.809 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/binary] fold done: f1_macro=0.4813
+2026-07-25 10:43:23.962 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/binary] outer fold 2/5
+2026-07-25 10:44:52.903 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/binary] fold done: f1_macro=0.4390
+2026-07-25 10:44:53.054 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/binary] outer fold 3/5
+2026-07-25 10:46:22.519 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/binary] fold done: f1_macro=0.4564
+2026-07-25 10:46:22.637 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/binary] outer fold 4/5
+2026-07-25 10:47:52.146 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/binary] fold done: f1_macro=0.4893
+2026-07-25 10:47:52.262 | INFO     | quantum.run:run_quantum_cv:150 - [qsvm/binary] outer fold 5/5
+2026-07-25 10:49:21.633 | INFO     | quantum.run:evaluate_fold_quantum:111 - [qsvm/binary] fold done: f1_macro=0.5960

@@ -6,30 +6,46 @@ quantum work is complete -- items here are known-open, not forgotten.
 
 ## Open
 
-- [ ] **SOREL-20M — not started.** No loader, not downloaded. Its labels are 11
-  multi-label behavior tags (no single family class), so plain stratification
-  does not apply — decide binary-only vs. dominant-tag class vs. iterative
-  multi-label stratification before building anything. EMBER's half is fully
-  resolved (see Decided below).
-- [ ] **EMBER experiments not yet run.** Loader + CLI support exist for both
-  binary and multiclass (see Decided); only the full sweeps (n≈1000, encodings
-  angle+iqp, n_components 1/3/6) remain to execute beyond the end-to-end
-  multiclass probe.
-- [ ] **Day 2 EMBER/SOREL-20M subsample sizing decision.** Blocked on the item
-  above — this was meant to size the quantum subsample for those datasets
-  specifically. We have the kernel-cost-vs-n_samples scaling data
-  (`docs/reports/w2_day1_quantum_profiling_report.md`, both `angle` and `iqp`
-  at n_components=2: exponent ~2.0, ~11.4s at n=400) but have NOT yet turned
-  it into a concrete recommended max sample count for a runtime budget. Needs:
-  pick a target per-fold runtime (e.g. under 5 min), solve the fitted power
-  law for n, cross-check against class-balance requirements for the smallest
-  malware family (harder for SOREL/EMBER's own label distributions once known).
+- [ ] **SOREL-20M — labelling decided, features not fetched.** The multiclass
+  label question is CLOSED: dominant-tag argmax over the 11 raw behavior-tag
+  counts, ties broken by declared column order, all-zero-tag rows dropped
+  (see `docs/reports/w4_sorel_labelling_decision.md`). What remains open is
+  the feature store: `ember_features/data.mdb` is a single 71.6 GiB
+  memory-mapped LMDB with no key-level remote access, so the whole file must
+  be local before any row can be read — not yet downloaded — and no QSVM
+  sweep has been run against it. `meta.db` (3.5 GiB, labels only) has been
+  fetched and analyzed.
 - [ ] **VQC is not implemented and not planned to be implemented by this
   contributor.** Only QSVM exists in `src/quantum/`. Flag to the team/mentors
   that Week 2's "extend the existing binary QSVM/VQC architecture toward
   multi-class" (Day 2) is QSVM-only unless someone else picks this up.
 
 ## Decided (no action needed, recorded for reference)
+
+- **EMBER experiments — done** (2026-07-25/26,
+  `docs/reports/w4_jul-25_ember_binary.md`, `docs/reports/w4_jul-26_ember_multiclass.md`).
+  Full sweeps (n=1000, `angle`+`iqp` as separate single-encoding invocations, n_components
+  1/3/6, quantum first then classical SVM replayed on the identical `--load-quantum-splits`
+  rows/folds) ran for both binary and 15-class multiclass. Binary: classical SVM wins at
+  every nc (0.5138 vs 0.6724 macro-F1 at nc=6) — overturns the Week 3 CIC reading of
+  "quantum ties classical on binary," which held only because CIC's binary task is
+  near-ceiling for every model. 15-class: classical SVM wins by the largest gap measured in
+  the project (0.27 at nc=6), but QSVM does not collapse the way it did on CIC 15-class
+  (recognizes 8-9/15 families even at nc=1, 14-15/15 from nc=3 up) — since EMBER's families
+  are exactly balanced (955/class) and CIC's are not, this rules out class imbalance as the
+  sole cause of CIC's collapse, though the actual cause remains unidentified.
+- **Subsample sizing decision — done** (2026-07-25,
+  `docs/reports/w4_subsample_sizing_decision.md`). Inverted the Day 1
+  kernel-cost-vs-n_samples power law (`t(n) = t_ref * (n/n_ref)**exponent`,
+  exponent~2.0, ref (400, 11.4s) at n_components=2) via
+  `common.sizing.solve_for_budget` / `scripts/solve_sample_size.py`: 917/2051/2901
+  max n at 1/5/10-minute per-Gram-build budgets. Cross-checked against the
+  15-class balance floor (n >= 750, re-derived independently) — the floor only
+  binds below a ~40s budget, so for the budgets actually considered the
+  runtime ceiling binds, not the class floor. Recommendation: **n=900** for
+  future EMBER/SOREL-20M sweeps at n_components=2, assuming a 60s/Gram-build
+  budget; re-probe before reusing this number at a materially different qubit
+  count.
 
 - **EMBER 2018 support — done, binary + multiclass** (2026-07-20). Source:
   official EMBER tarball `ember_dataset_2018_2.tar.bz2`, test split

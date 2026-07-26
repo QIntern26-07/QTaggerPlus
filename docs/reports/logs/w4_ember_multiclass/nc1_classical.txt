@@ -1,0 +1,13 @@
+warning: `VIRTUAL_ENV=/home/al/Projects/Quantum-Error-Correction-Decoder/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+2026-07-25 14:10:25.598 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 1/5
+2026-07-25 14:10:34.349 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.4929
+2026-07-25 14:10:34.599 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 2/5
+2026-07-25 14:10:35.865 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.5910
+2026-07-25 14:10:36.195 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 3/5
+2026-07-25 14:10:37.455 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.5173
+2026-07-25 14:10:37.741 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 4/5
+2026-07-25 14:10:39.392 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.5245
+2026-07-25 14:10:39.739 | INFO     | classical.run:run_nested_cv:140 - [svm/multiclass] outer fold 5/5
+2026-07-25 14:10:41.434 | INFO     | classical.run:evaluate_fold:97 - [svm/multiclass] fold done: f1_macro=0.5214
+2026-07-25 14:10:41.780 | INFO     | __main__:main:108 - wrote per-fold predictions to results/ember/svm_multiclass_predictions.npz
+2026-07-25 14:10:41.782 | INFO     | __main__:main:112 - wrote 1 model x task rows to results/ember/metrics.csv
