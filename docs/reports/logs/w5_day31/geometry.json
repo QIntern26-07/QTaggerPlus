@@ -1,0 +1,280 @@
+{
+  "cic": {
+    "source": "data/cic_malmem/Obfuscated-MalMem2022.csv",
+    "n_full_rows": 29298,
+    "n_subsample_rows": 1000,
+    "family_composition": {
+      "0": 68,
+      "1": 68,
+      "2": 67,
+      "3": 59,
+      "4": 73,
+      "5": 68,
+      "6": 68,
+      "7": 75,
+      "8": 48,
+      "9": 82,
+      "10": 67,
+      "11": 54,
+      "12": 68,
+      "13": 68,
+      "14": 67
+    },
+    "representativeness": {
+      "n_classes": 15.0,
+      "max_abs_proportion_diff": 0.0004425558058570589,
+      "n_features": 55.0,
+      "max_abs_mean_z": 0.045938757222582095,
+      "max_abs_std_ratio_dev": 1.0,
+      "n_zero_variance_full": 3.0,
+      "n_zero_variance_sample": 4.0,
+      "n_reject": 0.0,
+      "expected_rejects_under_null": 2.75
+    },
+    "geometry": {
+      "1": {
+        "mean_fisher_ratio": {
+          "mean": 0.06955913746558069,
+          "std": 0.005806888297683903
+        },
+        "min_fisher_ratio": {
+          "mean": 0.0002993934811386166,
+          "std": 0.0005597926927735001
+        },
+        "silhouette": {
+          "mean": -0.2228353402670334,
+          "std": 0.037636827495961256
+        },
+        "mean_centroid_distance": {
+          "mean": 1.2276240841421382,
+          "std": 0.04107041916646881
+        },
+        "min_centroid_distance": {
+          "mean": 0.012104217856043166,
+          "std": 0.007690684504140571
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.327742604811366,
+          "std": 0.011539918030792526
+        }
+      },
+      "3": {
+        "mean_fisher_ratio": {
+          "mean": 0.05719078766508924,
+          "std": 0.004343127343000725
+        },
+        "min_fisher_ratio": {
+          "mean": 0.0018462208696020381,
+          "std": 0.0011839983074321868
+        },
+        "silhouette": {
+          "mean": -0.1847660576587385,
+          "std": 0.01813168275565405
+        },
+        "mean_centroid_distance": {
+          "mean": 1.5203513467493461,
+          "std": 0.046956224421091354
+        },
+        "min_centroid_distance": {
+          "mean": 0.1630159451765377,
+          "std": 0.04643839275722496
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.5716110639447566,
+          "std": 0.020925886863276687
+        }
+      },
+      "6": {
+        "mean_fisher_ratio": {
+          "mean": 0.05121595481259974,
+          "std": 0.003493529494448177
+        },
+        "min_fisher_ratio": {
+          "mean": 0.0034948312337792233,
+          "std": 0.0006006186531692553
+        },
+        "silhouette": {
+          "mean": -0.14727077277807066,
+          "std": 0.01608561269068026
+        },
+        "mean_centroid_distance": {
+          "mean": 1.6864132334407498,
+          "std": 0.056572096948690635
+        },
+        "min_centroid_distance": {
+          "mean": 0.2573753621888626,
+          "std": 0.060572354720622446
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.7382196424885554,
+          "std": 0.02784242722145396
+        }
+      },
+      "8": {
+        "mean_fisher_ratio": {
+          "mean": 0.04907340917998636,
+          "std": 0.0033587560543869494
+        },
+        "min_fisher_ratio": {
+          "mean": 0.004218181397392509,
+          "std": 0.0009364215033505139
+        },
+        "silhouette": {
+          "mean": -0.14535512446430449,
+          "std": 0.01956969796092563
+        },
+        "mean_centroid_distance": {
+          "mean": 1.7248486967582415,
+          "std": 0.05723809609631217
+        },
+        "min_centroid_distance": {
+          "mean": 0.31262500516326913,
+          "std": 0.051040300540408985
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.8065338809288989,
+          "std": 0.02776070519109592
+        }
+      }
+    }
+  },
+  "ember": {
+    "source": "data/ember/ember2018_quantum_subset.parquet",
+    "n_full_rows": 14325,
+    "n_subsample_rows": 1000,
+    "family_composition": {
+      "0": 67,
+      "1": 67,
+      "2": 67,
+      "3": 66,
+      "4": 67,
+      "5": 67,
+      "6": 66,
+      "7": 66,
+      "8": 67,
+      "9": 67,
+      "10": 66,
+      "11": 67,
+      "12": 66,
+      "13": 67,
+      "14": 67
+    },
+    "representativeness": {
+      "n_classes": 15.0,
+      "max_abs_proportion_diff": 0.0006666666666666626,
+      "n_features": 2381.0,
+      "max_abs_mean_z": 0.12228325658598065,
+      "max_abs_std_ratio_dev": 2.7830773280153114,
+      "n_zero_variance_full": 83.0,
+      "n_zero_variance_sample": 217.0,
+      "n_reject": 1.0,
+      "expected_rejects_under_null": 119.05000000000001
+    },
+    "geometry": {
+      "1": {
+        "mean_fisher_ratio": {
+          "mean": 0.5684781154977794,
+          "std": 0.010366676852626456
+        },
+        "min_fisher_ratio": {
+          "mean": 0.015898306569900024,
+          "std": 0.007479250439909788
+        },
+        "silhouette": {
+          "mean": -0.20646433899426525,
+          "std": 0.006908241760467677
+        },
+        "mean_centroid_distance": {
+          "mean": 10.582756156591765,
+          "std": 0.22596250785626587
+        },
+        "min_centroid_distance": {
+          "mean": 0.1655037656499494,
+          "std": 0.05025938391313278
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.07704620562471498,
+          "std": 0.0018748826911306183
+        }
+      },
+      "3": {
+        "mean_fisher_ratio": {
+          "mean": 0.4524949280194945,
+          "std": 0.009753822094339653
+        },
+        "min_fisher_ratio": {
+          "mean": 0.01563336761920584,
+          "std": 0.0051983748959591
+        },
+        "silhouette": {
+          "mean": -0.059542324568766326,
+          "std": 0.008980474532441052
+        },
+        "mean_centroid_distance": {
+          "mean": 16.9477971526539,
+          "std": 0.2494368357511841
+        },
+        "min_centroid_distance": {
+          "mean": 0.6175642510903439,
+          "std": 0.2348925331340209
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.1734962408821883,
+          "std": 0.002559246743069911
+        }
+      },
+      "6": {
+        "mean_fisher_ratio": {
+          "mean": 0.3986780988354188,
+          "std": 0.015653198607413838
+        },
+        "min_fisher_ratio": {
+          "mean": 0.03514028344562361,
+          "std": 0.003359526240083773
+        },
+        "silhouette": {
+          "mean": -0.0017703949305800757,
+          "std": 0.031123432498114244
+        },
+        "mean_centroid_distance": {
+          "mean": 19.018820331159002,
+          "std": 0.45848826007025084
+        },
+        "min_centroid_distance": {
+          "mean": 0.7730321726077474,
+          "std": 0.17585166598754579
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.25732619648728,
+          "std": 0.0025860766803779537
+        }
+      },
+      "8": {
+        "mean_fisher_ratio": {
+          "mean": 0.3994593956759104,
+          "std": 0.024054873300978965
+        },
+        "min_fisher_ratio": {
+          "mean": 0.03396241514975184,
+          "std": 0.004647493760485249
+        },
+        "silhouette": {
+          "mean": 0.06913612485226214,
+          "std": 0.02571099779708052
+        },
+        "mean_centroid_distance": {
+          "mean": 21.336752638531685,
+          "std": 0.6135011316591759
+        },
+        "min_centroid_distance": {
+          "mean": 1.1221860197890396,
+          "std": 0.20424581312336382
+        },
+        "cumulative_explained_variance": {
+          "mean": 0.29953600552574816,
+          "std": 0.003389953293140909
+        }
+      }
+    }
+  }
+}
