@@ -1,0 +1,28 @@
+{
+  "cic": {
+    "n_train_rows": 800,
+    "n_qubits": 6,
+    "quantum": {
+      "offdiag_std": 0.08855674510280961,
+      "alignment": 0.2599553280749758
+    },
+    "rbf_control": {
+      "gamma": 0.5827503018135827,
+      "offdiag_std": 0.22122015158227268,
+      "alignment": 0.25609602815810645
+    }
+  },
+  "ember": {
+    "n_train_rows": 800,
+    "n_qubits": 6,
+    "quantum": {
+      "offdiag_std": 0.2015109784405519,
+      "alignment": 0.2884230826464103
+    },
+    "rbf_control": {
+      "gamma": 0.1725040159691433,
+      "offdiag_std": 0.2183769980708869,
+      "alignment": 0.28565405560433355
+    }
+  }
+}

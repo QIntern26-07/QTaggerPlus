@@ -1,0 +1,21 @@
+   dataset  nc       enc      start   mean    std
+cic-malmem   1     angle 2026-07-25 0.1192 0.0268
+cic-malmem   1 angle/iqp 2026-07-15 0.1065 0.0152
+cic-malmem   1       iqp 2026-07-25 0.0927 0.0198
+cic-malmem   2 angle/iqp 2026-07-14 0.2393 0.0302
+cic-malmem   3     angle 2026-07-25 0.0795 0.0038
+cic-malmem   3 angle/iqp 2026-07-15 0.0952 0.0174
+cic-malmem   3       iqp 2026-07-25 0.1005 0.0132
+cic-malmem   4 angle/iqp 2026-07-14 0.1042 0.0367
+cic-malmem   5 angle/iqp 2026-07-14 0.1704 0.0213
+cic-malmem   6     angle 2026-07-25 0.0674 0.0035
+cic-malmem   6 angle/iqp 2026-07-15 0.0812 0.0160
+cic-malmem   6       iqp 2026-07-25 0.0882 0.0105
+cic-malmem   8     angle 2026-07-25 0.0600 0.0058
+cic-malmem   8       iqp 2026-07-25 0.0798 0.0096
+ember-2018   1     angle 2026-07-25 0.2044 0.0054
+ember-2018   1       iqp 2026-07-25 0.1756 0.0027
+ember-2018   3     angle 2026-07-25 0.1942 0.0113
+ember-2018   3       iqp 2026-07-25 0.2569 0.0177
+ember-2018   6     angle 2026-07-25 0.1363 0.0180
+ember-2018   6       iqp 2026-07-25 0.2104 0.0086
