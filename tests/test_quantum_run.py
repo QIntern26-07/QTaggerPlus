@@ -107,3 +107,15 @@ def test_timing_probe_single_fit_reports_kernel_time():
     rec = timing_probe(X, y, "binary", n_components=1, encoding="angle", seed=0)
     assert rec["kernel_build_train_s"] >= 0.0
     assert "fit_time_sec" in rec and "inference_time_sec" in rec
+
+
+def test_quantum_predictions_path_encodes_task_nc_and_encoding():
+    from quantum.__main__ import predictions_path
+
+    assert predictions_path("ember", "binary", 3, ["iqp"]) == (
+        "results/ember/qsvm_binary_nc3_iqp_predictions.npz"
+    )
+    # several encodings in one sweep -> "joint", matching run.py's tag rule
+    assert predictions_path("cic", "multiclass", 6, ["angle", "iqp"]) == (
+        "results/cic/qsvm_multiclass_nc6_joint_predictions.npz"
+    )
