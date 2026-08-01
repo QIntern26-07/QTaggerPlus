@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from common import evaluate
 
 
@@ -7,9 +8,24 @@ def test_compute_metrics_perfect_binary():
     y_pred = np.array([0, 1, 0, 1])
     y_proba = np.array([0.1, 0.9, 0.2, 0.8])
     m = evaluate.compute_metrics(y_true, y_pred, y_proba, task="binary")
-    assert set(m) == {"accuracy", "precision", "recall", "f1_macro", "mcc", "roc_auc"}
+    assert set(m) == {"accuracy", "precision", "recall", "f1_macro",
+                      "f1_weighted", "mcc", "roc_auc"}
     assert m["accuracy"] == 1.0
     assert m["roc_auc"] == 1.0
+
+
+def test_compute_metrics_includes_weighted_f1_distinct_from_macro():
+    # Imbalanced on purpose: 3 samples of class 0, 1 of class 1, so the
+    # weighted average is pulled toward class 0 and must differ from macro.
+    y_true = np.array([0, 0, 0, 1])
+    y_pred = np.array([0, 0, 1, 1])
+    y_proba = np.array([0.1, 0.2, 0.8, 0.9])
+    m = evaluate.compute_metrics(y_true, y_pred, y_proba, task="binary")
+    assert "f1_weighted" in m
+    # class 0: P=1.0, R=2/3 -> F1=0.8 ; class 1: P=0.5, R=1.0 -> F1=2/3
+    # macro = 0.7333..., weighted = (3*0.8 + 1*(2/3)) / 4 = 0.76666...
+    assert m["f1_macro"] == pytest.approx(0.733333, abs=1e-5)
+    assert m["f1_weighted"] == pytest.approx(0.766667, abs=1e-5)
 
 
 def test_compute_metrics_multiclass_roc_auc_present():
