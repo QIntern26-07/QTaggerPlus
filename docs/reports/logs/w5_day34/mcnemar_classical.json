@@ -1,0 +1,158 @@
+[
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "lightgbm",
+      "random_forest"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 49.0,
+    "pvalue": 1.0,
+    "n01": 49,
+    "n10": 49
+  },
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "lightgbm",
+      "svm"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 66.0,
+    "pvalue": 0.1427180761829656,
+    "n01": 85,
+    "n10": 66
+  },
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "lightgbm",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 38.0,
+    "pvalue": 0.8221442424521863,
+    "n01": 38,
+    "n10": 41
+  },
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "random_forest",
+      "svm"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 58.0,
+    "pvalue": 0.12101372565511781,
+    "n01": 77,
+    "n10": 58
+  },
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "random_forest",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 35.0,
+    "pvalue": 0.8151212352249976,
+    "n01": 35,
+    "n10": 38
+  },
+  {
+    "group": "cic/multiclass (nc unknown - legacy files)",
+    "pair": [
+      "svm",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 57.0,
+    "pvalue": 0.07135326795326226,
+    "n01": 57,
+    "n10": 79
+  },
+  {
+    "group": "ember/nc6/multiclass",
+    "pair": [
+      "lightgbm",
+      "random_forest"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 21.0,
+    "pvalue": 0.036343179957053884,
+    "n01": 38,
+    "n10": 21
+  },
+  {
+    "group": "ember/nc6/multiclass",
+    "pair": [
+      "lightgbm",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 17.0,
+    "pvalue": 0.27995623852893914,
+    "n01": 17,
+    "n10": 25
+  },
+  {
+    "group": "ember/nc6/multiclass",
+    "pair": [
+      "random_forest",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 19.0,
+    "pvalue": 0.0022275315109880345,
+    "n01": 19,
+    "n10": 44
+  },
+  {
+    "group": "ember/nc6/binary",
+    "pair": [
+      "lightgbm",
+      "random_forest"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 21.0,
+    "pvalue": 0.2624375357110438,
+    "n01": 21,
+    "n10": 30
+  },
+  {
+    "group": "ember/nc6/binary",
+    "pair": [
+      "lightgbm",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 23.0,
+    "pvalue": 0.7754496546815659,
+    "n01": 23,
+    "n10": 26
+  },
+  {
+    "group": "ember/nc6/binary",
+    "pair": [
+      "random_forest",
+      "xgboost"
+    ],
+    "shared_test_set": true,
+    "n": 1000,
+    "statistic": 27.0,
+    "pvalue": 0.5189580031896519,
+    "n01": 33,
+    "n10": 27
+  }
+]
