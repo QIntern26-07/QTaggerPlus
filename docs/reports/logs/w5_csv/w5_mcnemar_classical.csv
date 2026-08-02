@@ -1,0 +1,13 @@
+group,model_a,model_b,shared_test_set,n_samples,n01_a_wrong_b_right,n10_a_right_b_wrong,statistic,pvalue,significant_at_05,skipped
+cic/multiclass (nc unknown - legacy files),lightgbm,random_forest,True,1000,49,49,49.0,1.0,False,
+cic/multiclass (nc unknown - legacy files),lightgbm,svm,True,1000,85,66,66.0,0.1427180761829656,False,
+cic/multiclass (nc unknown - legacy files),lightgbm,xgboost,True,1000,38,41,38.0,0.8221442424521863,False,
+cic/multiclass (nc unknown - legacy files),random_forest,svm,True,1000,77,58,58.0,0.12101372565511781,False,
+cic/multiclass (nc unknown - legacy files),random_forest,xgboost,True,1000,35,38,35.0,0.8151212352249976,False,
+cic/multiclass (nc unknown - legacy files),svm,xgboost,True,1000,57,79,57.0,0.07135326795326226,False,
+ember/nc6/multiclass,lightgbm,random_forest,True,1000,38,21,21.0,0.036343179957053884,True,
+ember/nc6/multiclass,lightgbm,xgboost,True,1000,17,25,17.0,0.27995623852893914,False,
+ember/nc6/multiclass,random_forest,xgboost,True,1000,19,44,19.0,0.0022275315109880345,True,
+ember/nc6/binary,lightgbm,random_forest,True,1000,21,30,21.0,0.2624375357110438,False,
+ember/nc6/binary,lightgbm,xgboost,True,1000,23,26,23.0,0.7754496546815659,False,
+ember/nc6/binary,random_forest,xgboost,True,1000,33,27,27.0,0.5189580031896519,False,

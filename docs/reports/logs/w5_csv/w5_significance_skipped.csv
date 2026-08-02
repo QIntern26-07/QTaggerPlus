@@ -1,0 +1,16 @@
+dataset,task,n_components,model,encoding,reason
+cic-malmem,binary,1,qsvm,angle,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,1,qsvm,iqp,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,1,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,3,qsvm,angle,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,3,qsvm,iqp,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,3,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,6,qsvm,angle,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,6,qsvm,iqp,no FINISHED sweep with exactly 5 fold rows
+cic-malmem,binary,6,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,binary,1,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,binary,3,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,binary,6,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,multiclass,1,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,multiclass,3,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
+ember-2018,multiclass,6,qsvm,joint,no FINISHED sweep with exactly 5 fold rows
