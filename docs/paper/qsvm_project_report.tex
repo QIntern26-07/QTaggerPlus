@@ -1,0 +1,447 @@
+% Cumulative QSVM-track report, Week 1 through Week 5. Standalone.
+%
+% Build:  latexmk -pdf qsvm_project_report.tex
+%
+% Figures:
+%   uv run python scripts/make_history_figures.py     -> figures_history/
+%   uv run python scripts/make_report_figures.py      -> figures/
+% Regenerate rather than editing them.
+
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{siunitx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\usepackage{enumitem}
+
+\captionsetup{font=small,labelfont=bf}
+\sisetup{detect-weight=true,detect-inline-weight=math}
+\setlist{itemsep=1pt,topsep=3pt}
+
+\newcommand{\nc}{\ensuremath{n_{\mathrm{components}}}}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\HFIG}[1]{figures_history/#1}
+\newcommand{\WFIG}[1]{figures/#1}
+
+\title{QTagger+ --- QSVM Track\\[0.3em]
+\large Cumulative report, Week 1 to Week 5}
+\date{2 August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+QTagger+ compares classical machine-learning baselines against a fidelity-kernel
+quantum support-vector machine (QSVM) on malware classification, under a
+protocol designed so that the two are measured identically. This report covers
+the QSVM track from Week~1 to Week~5.
+
+The arc is short to state. Week~1's classical baselines showed the binary task
+on CIC-MalMem is saturated, which made it useless as a discriminator. Weeks~2--3
+built the quantum pipeline and the shared-split protocol, and reframed the
+multiclass task to malware-only 15-class. Week~4 added a second dataset (EMBER
+2018) and closed the encoding comparison. Week~5 completed the classical
+baseline, verified the subsample the whole project rests on, identified the
+mechanism behind the QSVM's collapse on CIC 15-class, and ran the first
+significance tests.
+
+Result: classical models beat the QSVM on every configuration that can be
+tested, on both datasets and both tasks, with $p<0.05$ on all 84 paired
+comparisons. The QSVM's failure on CIC 15-class is a property of the kernel
+rather than the data --- a classical RBF kernel on the identical features does
+not concentrate, while the fidelity kernel collapses to $0.40\times$ its spread.
+\end{abstract}
+
+\section{Week 1 --- classical baselines, and the saturation problem}
+
+Four classical models (random forest, XGBoost, LightGBM, SVM with an RBF kernel)
+were tuned and evaluated on the full CIC-MalMem-2022 dataset: \num{58596} rows,
+55 memory-forensic features, 5-fold cross-validation with an Optuna inner loop.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{\HFIG{fig_w1_baseline.pdf}}
+\caption{Full-dataset CIC-MalMem, no dimensionality reduction. (a) The binary
+task is saturated --- all four models exceed $0.9998$ macro-F1 and the spread
+between best and worst is $10^{-4}$. (b) The multiclass task in its original
+form, benign still included as a class, separates the models by 0.19 macro-F1.
+Transcribed from the Week~1 report; these runs predate experiment tracking in
+this project.}
+\label{fig:w1}
+\end{figure}
+
+Figure~\ref{fig:w1}(a) is the finding that shaped everything after it. When
+every model scores above $0.9998$, the task cannot rank methods: any comparison
+on it measures noise. That is the reason the project's central claims are made
+on the multiclass task, and the reason a later ``QSVM ties classical on binary''
+reading had to be treated with care --- a tie at the ceiling is not evidence of
+parity.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{\HFIG{fig_w1_cost.pdf}}
+\caption{Tuning cost for a single outer fold on the full dataset. The SVM ---
+the closest classical analogue to a QSVM, and therefore the most relevant
+comparison --- is the most expensive at 72 minutes per fold.}
+\label{fig:w1cost}
+\end{figure}
+
+Figure~\ref{fig:w1cost} explains a constraint that persists through the project:
+even the classical side is expensive at full scale, and the quantum side is
+quadratically worse. Every later design decision about subsampling follows from
+this.
+
+\section{Weeks 2--3 --- the quantum pipeline and the comparison protocol}
+
+\subsection{What makes the comparison fair}
+
+Both frameworks consume the output of one shared pipeline: a zero-variance
+filter, a correlation filter at $0.95$, standardisation, then PCA to \nc{}
+components. That single parameter fixes the classical feature count \emph{and}
+the quantum qubit budget simultaneously. The pipeline is fit on training-fold
+rows only.
+
+Because the fidelity kernel needs $O(n^2)$ circuit evaluations, quantum runs
+work on a stratified 1000-row subsample. The subsample and the five outer folds
+computed over it are written to disk by the quantum runner and \emph{replayed}
+by the classical runner, so neither side chooses its own rows. A full-dataset
+classical run is never compared against a subsampled quantum run.
+
+\subsection{The cost that forces subsampling}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.52\textwidth]{\HFIG{fig_quantum_cost.pdf}}
+\caption{Per-circuit-pair cost of building the training Gram matrix, against
+qubit count, from a single session so the worker configuration is constant.
+Cost per pair rises roughly tenfold from 1 to 8 qubits --- and the number of
+pairs itself grows as $n^2$, so the two effects compound.}
+\label{fig:qcost}
+\end{figure}
+
+Figure~\ref{fig:qcost} is measured per circuit pair rather than per fold, which
+removes the effect of subsample size changing across the project. At $n=1000$ a
+training fold needs roughly \num{320000} pair evaluations, so the per-pair
+figures translate to minutes per Gram at the low end and tens of minutes at
+$n_{\mathrm{qubits}}=8$.
+
+A sizing exercise in Week~4 fitted this scaling law and solved it for a target
+budget, recommending $n=900$ at 60\,s per Gram build, with a class-balance floor
+of $n \ge 750$ for the 15-class task. The 1000-row subsample used throughout sits
+just above that floor.
+
+\subsection{Binary is a ceiling, on the subsample too}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.55\textwidth]{\HFIG{fig_cic_binary_ceiling.pdf}}
+\caption{CIC-MalMem binary on the 1000-row subsample, across the PCA sweep.
+Every model, quantum and classical, lies between $0.977$ and $0.992$ macro-F1,
+and every difference is inside the fold-to-fold error bars. Aggregated over all
+recorded folds: these runs predate parent/child run tracking, so individual
+sweeps are not recoverable (§\ref{sec:untestable}).}
+\label{fig:ceiling}
+\end{figure}
+
+Figure~\ref{fig:ceiling} shows that the saturation of Figure~\ref{fig:w1}(a)
+survives dimensionality reduction and subsampling. The QSVM does sit level with
+the classical models here. It sits level with them because nothing separates on
+this task, not because the quantum kernel is competitive.
+
+\subsection{The multiclass reframe}
+
+The original multiclass task kept benign as a 16th class. Since benign detection
+is exactly what the binary task measures, keeping it made the label space
+pathologically imbalanced and duplicated the binary task inside the multiclass
+one. Week~2 reframed it: benign rows are dropped, leaving \num{29298} malware
+rows across 15 families. All 15-class numbers in this report use that
+definition, which is why they are not comparable to Figure~\ref{fig:w1}(b).
+
+\section{Week 4 --- a second dataset, and the encoding verdict}
+
+\subsection{EMBER 2018}
+
+A second dataset was added to test whether any conclusion was an artifact of
+CIC. EMBER 2018 contributes static PE features in 2381 dimensions. Work uses an
+\num{18014}-row extract of the published test set; the full set is a single
+$200\,000 \times 2384$ block that cannot be read incrementally. Its 15-class task
+keeps the 15 largest families and downsamples each to the smallest, giving
+\num{14325} rows at exactly 955 per family --- a balanced counterpart to CIC's
+$1.7\times$ imbalance.
+
+\subsection{angle versus IQP}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{\HFIG{fig_encoding_verdict.pdf}}
+\caption{IQP minus angle encoding, 15-class macro-F1. The grey band is the
+fold-to-fold spread of the encodings themselves. On CIC every difference lies
+inside that band. On EMBER the differences at \nc{}~$=3$ and $6$ clear it.}
+\label{fig:enc}
+\end{figure}
+
+Figure~\ref{fig:enc} gives the verdict: IQP is never worse than angle, but the
+advantage is only measurable on EMBER. On CIC the deltas are $+0.0009$,
+$+0.0122$, $+0.0113$ and $+0.0046$ at \nc{} $=1,3,6,8$, each smaller than either
+encoding's own standard deviation. Extending to 8 qubits did not rescue CIC
+15-class performance ($0.0739$, against a $0.067$ chance baseline), which ruled
+out qubit count as the missing ingredient.
+
+A methodological change came out of this: comparing encodings by counting which
+one an inner-CV tuner selected per fold was retired. It conflates ``which was
+picked when both were live options'' with ``which performs better'', and
+produced an ambiguous 8/15 win count on data where the direct macro-F1 deltas
+showed IQP ahead at every \nc{}. Encoding comparisons now use dedicated
+single-encoding runs and report deltas with their spread.
+
+\subsection{SOREL-20M}
+
+A third dataset was scoped and its multiclass labelling scheme designed and
+validated over 19.7M rows: dominant-tag argmax over 11 behaviour-tag counts,
+ties broken by declared column order, all-zero-tag rows dropped. The feature
+store was never fetched and no sweep was run --- these are independent pieces of
+work, and only the first was completed. §\ref{sec:notdone} states the blocker.
+
+\section{Week 5 --- completing the baseline and finding the mechanism}
+
+\subsection{The classical baseline was too weak}
+
+Until Week~5 the EMBER comparison ran SVM only, so every EMBER margin on record
+was a QSVM-versus-SVM margin. Adding the other three models changed the numbers:
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{EMBER 2018, held-out macro-F1, mean over 5 outer folds. Best classical
+model in bold.}
+\label{tab:ember}
+\begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]
+S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
+\toprule
+& {Random forest} & {XGBoost} & {LightGBM} & {SVM} & {QSVM angle} & {QSVM IQP} \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Binary}}\\
+\nc{}~$=1$ & \best{0.5582} & 0.5451 & 0.5093 & 0.5314 & 0.4532 & 0.4587 \\
+\nc{}~$=3$ & \best{0.6575} & 0.6465 & 0.6434 & 0.6306 & 0.4924 & 0.5084 \\
+\nc{}~$=6$ & \best{0.6835} & 0.6680 & 0.6593 & 0.6724 & 0.5138 & 0.5137 \\
+\addlinespace
+\multicolumn{7}{@{}l}{\emph{15-class}}\\
+\nc{}~$=1$ & \best{0.5562} & 0.5313 & 0.5410 & 0.5294 & 0.1688 & 0.1541 \\
+\nc{}~$=3$ & 0.7194 & 0.7089 & 0.7035 & \best{0.7389} & 0.3908 & 0.4797 \\
+\nc{}~$=6$ & 0.7903 & 0.7659 & 0.7709 & \best{0.7930} & 0.4232 & 0.5195 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Random forest beats SVM on every binary cell, so the gap widens from $+0.0727$
+to $+0.0995$ at \nc{}~$=1$, $+0.1222$ to $+0.1491$ at $3$, and $+0.1587$ to
+$+0.1697$ at $6$. On the 15-class task SVM is genuinely the strongest baseline
+at \nc{}~$\in\{3,6\}$, so those margins stand. Four of six cells move, and every
+one of them moves against the quantum pipeline.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{\WFIG{fig_capacity_scaling.pdf}}
+\caption{Macro-F1 against the shared feature/qubit budget. Solid lines are
+classical, dashed the QSVM encodings. On EMBER binary the QSVM gains $0.055$
+macro-F1 from one to six components where the random forest gains $0.125$: the
+gap widens with capacity rather than closing.}
+\label{fig:capacity}
+\end{figure}
+
+\subsection{The subsample the project rests on}
+
+Every quantum result since Week~2 is computed on 1000 rows. Validating that this
+subsample represents its population was specified in Week~2 and executed in
+Week~5. Read against the null expectation --- a faithful subsample still rejects
+about $\alpha \cdot n_{\mathrm{features}}$ features by chance --- CIC rejects
+\textbf{0} of 55 where $\approx 2.75$ were expected, and EMBER \textbf{1} of
+2381 where $\approx 119$ were. Maximum class-proportion drift is below $0.001$
+on both. Both subsamples are faithful.
+
+\subsection{Why CIC 15-class collapses}
+
+The QSVM sits at the random baseline on CIC 15-class ($0.056$--$0.079$ against
+chance $\approx 0.067$) while reaching $0.42$--$0.52$ on EMBER 15-class. Class
+imbalance and qubit count had already been ruled out. Two measurements separate
+a dataset effect from a kernel effect.
+
+\paragraph{Feature geometry --- a dataset effect.} On the identical projected
+features, EMBER's families are $\approx 8\times$ more separable by Fisher ratio
+and up to $50\times$ on the worst-case family. CIC's silhouette is negative at
+every \nc{}: the average point lies closer to another family's centroid than its
+own. CIC's PCA nonetheless explains \emph{more} variance ($33$--$81\%$ against
+$8$--$30\%$), so its variance sits in directions that do not discriminate family.
+This explains why every method does badly on CIC 15-class, and cannot explain
+the QSVM-specific failure --- a classical SVM extracts $0.108$--$0.165$ from
+these same features where the QSVM extracts $0.056$--$0.079$.
+
+\paragraph{Kernel geometry --- a kernel effect.}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{\WFIG{fig_kernel_diagnostics.pdf}}
+\caption{First outer training fold, \nc{}~$=6$, IQP encoding, 800 rows, with an
+RBF control built on the \emph{identical} feature matrix. (a) Off-diagonal Gram
+spread. (b) Kernel-target alignment relative to its floor --- a constant kernel
+scores $1/\sqrt{15}\approx 0.258$ on 15 balanced classes, so only the excess
+carries information.}
+\label{fig:kernel}
+\end{figure}
+
+The RBF control produces near-identical spread on both datasets ($0.2212$ against
+$0.2184$), so CIC's features do not make a classical kernel concentrate. The
+fidelity kernel tracks RBF on EMBER ($0.92\times$) and collapses to
+$\mathbf{0.40\times}$ on CIC: every off-diagonal similarity squeezed into a band
+$2.5\times$ narrower from the same inputs. The Gram approaches a scaled identity,
+and a support-vector machine given that has nothing to separate on.
+
+On alignment, the CIC fidelity kernel lands $0.000069$ \emph{below} the
+constant-kernel floor --- indistinguishable from an all-ones matrix --- and the
+RBF control is below it too. On EMBER both clear it by $\approx 0.03$. So
+alignment separates the datasets and concentration separates the kernels.
+
+Two limits on this. First, \texttt{bandwidth} is the named mechanism for
+concentration and has never been tuned on CIC beyond its default; no sweep was
+run, so this is a hypothesis with an identified lever rather than a measured
+fix. Second, alignment reports that neither kernel carries label information on
+CIC, yet a classical SVM reaches $0.16$ there --- alignment is a global
+unweighted average over all pairs and an SVM requires no such thing, which makes
+it a poor predictor of achievable SVM performance.
+
+\subsection{Significance}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.56\textwidth]{\WFIG{fig_significance.pdf}}
+\caption{All 84 testable quantum--classical pairs. Every point lies left of
+$p=0.05$ and above zero.}
+\label{fig:sig}
+\end{figure}
+
+Paired significance testing was specified in Week~1, built, unit-tested, and
+executed for the first time in Week~5. Until then, four weeks of ``QSVM loses to
+classical'' rested on differences in mean macro-F1 with no test that any gap
+exceeded fold-to-fold noise.
+
+All 84 testable pairs favour the classical model and all 84 reach $p<0.05$ on
+the paired $t$-test; the worst $p$-value across every pair is $0.0241$.
+
+The Wilcoxon signed-rank test returned exactly $0.0625$ for all 84 pairs. With
+five paired samples that is the smallest attainable two-sided $p$-value, so the
+test cannot reach $0.05$ at this fold count regardless of effect size; all 84
+hitting the floor means every pair achieved the most extreme rank configuration
+available. Six folds would put $0.03125$ within reach.
+
+\section{Cumulative result}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{\HFIG{fig_project_arc.pdf}}
+\caption{Best classical against best QSVM in each dataset/task cell, over
+\nc{}~$\in\{1,3,6\}$. Hatched bars are aggregated from raw folds because no
+sweep boundary is recoverable for that cell (§\ref{sec:untestable}); the others
+come from the most recent complete 5-fold sweep.}
+\label{fig:arc}
+\end{figure}
+
+Figure~\ref{fig:arc} is the project in one chart. On CIC binary the two are
+$0.006$ macro-F1 apart --- a tie at the ceiling, where nothing separates. In the
+three cells where the task can discriminate, the classical model leads by
+$0.085$ (CIC 15-class), $0.170$ (EMBER binary) and $0.274$ (EMBER 15-class).
+
+\section{What was not done}
+\label{sec:notdone}
+
+\begin{description}[leftmargin=1.2em,style=nextline]
+\item[SOREL-20M sweeps] Closed rather than deferred. Neither disk
+(\SI{227}{\gibi\byte} free against \SI{71.6}{\gibi\byte} needed) nor memory is
+the blocker --- the feature store is a memory-mapped LMDB whose reads page
+through the OS cache. The blocker is the fixed \SI{71.6}{\gibi\byte} transfer:
+the store offers no key-level remote access, so there is no way to fetch only the
+thousand rows a sweep would need. Resume conditions are documented.
+\item[Variational quantum classifier] Not implemented. The comparison is
+fidelity-kernel QSVM against classical baselines, not ``quantum methods''
+against classical ones.
+\item[Basis encoding] Deliberately omitted. It maps discrete values onto
+computational basis states, but the pipeline's inputs are continuous PCA
+components, so it would require a quantisation step that discards what PCA was
+used to retain.
+\item[UMAP as a second reduction] Deliberately omitted. PCA is the
+classical/quantum alignment point; a second reduction with no classical
+counterpart would break it.
+\item[CTGAN-augmented run] Blocked on the augmented dataset from another team.
+The pipeline accepts any parquet, so nothing is outstanding on this side.
+\item[Weighted F1 on existing results] The metric was added in Week~5. No sweep
+was re-run, so no result in this report carries it. It matters most on CIC
+15-class, where families run 48--82 rows in the subsample.
+\end{description}
+
+\section{Untestable configurations}
+\label{sec:untestable}
+
+All CIC binary comparisons --- 9 cells across 4 models --- cannot be
+significance-tested. Every CIC binary run, classical and quantum alike, predates
+parent/child run tracking in the experiment log and carries no recoverable sweep
+boundary; the 45 fold records per model resolve into two distinct sweeps per
+\nc{} with different configurations and no identifier separating them. The
+records are valid measurements and are used descriptively in
+Figures~\ref{fig:ceiling} and~\ref{fig:arc}, but no grouping was reconstructed,
+since the time gaps between runs are not a recorded boundary. The limitation is
+symmetric across frameworks.
+
+McNemar's test between frameworks needs per-sample predictions from both models
+on a shared test set. QSVM predictions were not persisted during these sweeps;
+persistence was added in Week~5 but no sweep was re-run.
+
+\section{Method notes carried forward}
+
+\begin{itemize}
+\item \textbf{Macro-F1, not accuracy.} On EMBER binary at \nc{}~$=1$ the QSVM
+attains $0.890$ accuracy in three of five folds while the benign class's F1 is
+exactly $0.000$ in those same folds, because $88.9\%$ of rows are malware and
+the model labels everything malware.
+\item \textbf{Runs are grouped by sweep, not by parameters.} The same
+configuration was swept several times across the project, so a parameter-based
+grouping returns 10, 15 or 20 records for a five-fold sweep and averages
+distinct hyperparameter searches together --- 57 parameter groups in the
+experiment log have a size other than five. For the QSVM, encoding is
+additionally a \emph{per-fold outcome} rather than a configuration key: the
+two-tier tuner selects it inside each fold, so one joint sweep can appear as
+four angle folds and one IQP fold. Runs are grouped by parent run, keeping only
+sweeps that completed with exactly five folds. 123 of 125 nested sweeps are
+clean.
+\item \textbf{Simulator only.} All results use a state-vector simulator. No
+hardware execution and no noise model.
+\end{itemize}
+
+\section{Summary}
+
+Across five weeks and two datasets, classical models beat the fidelity-kernel
+QSVM on every configuration where the task can discriminate at all, with
+$p<0.05$ on all 84 paired comparisons. The single configuration where the two
+were level --- CIC binary --- is saturated for every method, and level results
+there carry no information about the methods.
+
+The transferable finding is the mechanism rather than the ranking. The fidelity
+kernel does not fail on CIC because CIC's features are hard: a classical RBF
+kernel on identical features does not concentrate. It fails because the fidelity
+kernel itself collapses to $0.40\times$ the classical kernel's spread on that
+data, driving its Gram matrix toward a scaled identity. That is a statement about
+the method, and it predicts where the approach will struggle on data nobody in
+this project has seen.
+
+\paragraph{Immediate next steps.} Tune \texttt{bandwidth} on CIC, the identified
+mechanism whose lever remains untested. Move to six outer folds so a
+non-parametric test becomes usable.
+
+\end{document}
