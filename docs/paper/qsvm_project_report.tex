@@ -32,7 +32,7 @@
 \newcommand{\WFIG}[1]{figures/#1}
 
 \title{QTagger+ --- QSVM Track\\[0.3em]
-\large Cumulative report, Week 1 to Week 5}
+\large Fidelity-kernel QSVM against classical baselines\\for malware family attribution}
 \date{2 August 2026}
 
 \begin{document}
@@ -42,30 +42,24 @@
 \noindent
 QTagger+ compares classical machine-learning baselines against a fidelity-kernel
 quantum support-vector machine (QSVM) on malware classification, under a
-protocol designed so that the two are measured identically. This report covers
-the QSVM track from Week~1 to Week~5.
+protocol designed so that the two are measured identically. It reports the
+QSVM track in full.
 
-The arc is short to state. Week~1's classical baselines showed the binary task
-on CIC-MalMem is saturated, which made it useless as a discriminator. Weeks~2--3
-built the quantum pipeline and the shared-split protocol, and reframed the
-multiclass task to malware-only 15-class. Week~4 added a second dataset (EMBER
-2018) and closed the encoding comparison. Week~5 completed the classical
-baseline, verified the subsample the whole project rests on, identified the
-mechanism behind the QSVM's collapse on CIC 15-class, and ran the first
-significance tests.
-
-Result: classical models beat the QSVM on every configuration that can be
-tested, on both datasets and both tasks, with $p<0.05$ on all 84 paired
-comparisons. The QSVM's failure on CIC 15-class is a property of the kernel
+Two datasets are used, each with a binary and a 15-class task. On the binary
+task of CIC-MalMem every method exceeds $0.9998$ macro-F1, so that task cannot
+rank methods and is treated as a control rather than a result. On the three
+configurations where the task discriminates, classical models beat the QSVM
+with $p<0.05$ on all 84 paired comparisons. The QSVM's failure on CIC 15-class is a property of the kernel
 rather than the data --- a classical RBF kernel on the identical features does
 not concentrate, while the fidelity kernel collapses to $0.40\times$ its spread.
 \end{abstract}
 
-\section{Week 1 --- classical baselines, and the saturation problem}
+\section{Classical baselines, and the saturation problem}
 
-Four classical models (random forest, XGBoost, LightGBM, SVM with an RBF kernel)
-were tuned and evaluated on the full CIC-MalMem-2022 dataset: \num{58596} rows,
-55 memory-forensic features, 5-fold cross-validation with an Optuna inner loop.
+The starting point is four classical models --- random forest, XGBoost,
+LightGBM, and an SVM with an RBF kernel --- tuned and evaluated on the full
+CIC-MalMem-2022 dataset: \num{58596} rows, 55 memory-forensic features, 5-fold
+cross-validation with an Optuna inner loop.
 
 \begin{figure}[htbp]
 \centering
@@ -74,17 +68,16 @@ were tuned and evaluated on the full CIC-MalMem-2022 dataset: \num{58596} rows,
 task is saturated --- all four models exceed $0.9998$ macro-F1 and the spread
 between best and worst is $10^{-4}$. (b) The multiclass task in its original
 form, benign still included as a class, separates the models by 0.19 macro-F1.
-Transcribed from the Week~1 report; these runs predate experiment tracking in
-this project.}
+These full-dataset runs predate experiment tracking in this project and are
+transcribed from its written record.}
 \label{fig:w1}
 \end{figure}
 
-Figure~\ref{fig:w1}(a) is the finding that shaped everything after it. When
-every model scores above $0.9998$, the task cannot rank methods: any comparison
-on it measures noise. That is the reason the project's central claims are made
-on the multiclass task, and the reason a later ``QSVM ties classical on binary''
-reading had to be treated with care --- a tie at the ceiling is not evidence of
-parity.
+Figure~\ref{fig:w1}(a) shapes everything that follows. When every model scores
+above $0.9998$, the task cannot rank methods: any comparison on it measures
+noise. The project's central claims are therefore made on the multiclass task,
+and a level result on CIC binary --- which does occur --- is read as a property
+of the task rather than evidence of parity.
 
 \begin{figure}[htbp]
 \centering
@@ -95,12 +88,11 @@ comparison --- is the most expensive at 72 minutes per fold.}
 \label{fig:w1cost}
 \end{figure}
 
-Figure~\ref{fig:w1cost} explains a constraint that persists through the project:
+Figure~\ref{fig:w1cost} sets a constraint that runs through the whole project:
 even the classical side is expensive at full scale, and the quantum side is
-quadratically worse. Every later design decision about subsampling follows from
-this.
+quadratically worse. The subsampling design in §\ref{sec:cost} follows from it.
 
-\section{Weeks 2--3 --- the quantum pipeline and the comparison protocol}
+\section{The comparison protocol}
 
 \subsection{What makes the comparison fair}
 
@@ -117,6 +109,7 @@ by the classical runner, so neither side chooses its own rows. A full-dataset
 classical run is never compared against a subsampled quantum run.
 
 \subsection{The cost that forces subsampling}
+\label{sec:cost}
 
 \begin{figure}[htbp]
 \centering
@@ -134,9 +127,9 @@ training fold needs roughly \num{320000} pair evaluations, so the per-pair
 figures translate to minutes per Gram at the low end and tens of minutes at
 $n_{\mathrm{qubits}}=8$.
 
-A sizing exercise in Week~4 fitted this scaling law and solved it for a target
-budget, recommending $n=900$ at 60\,s per Gram build, with a class-balance floor
-of $n \ge 750$ for the 15-class task. The 1000-row subsample used throughout sits
+A sizing exercise fitted this scaling law and solved it for a target budget,
+recommending $n=900$ at 60\,s per Gram build, with a class-balance floor of
+$n \ge 750$ for the 15-class task. The 1000-row subsample used throughout sits
 just above that floor.
 
 \subsection{Binary is a ceiling, on the subsample too}
@@ -162,16 +155,15 @@ this task, not because the quantum kernel is competitive.
 The original multiclass task kept benign as a 16th class. Since benign detection
 is exactly what the binary task measures, keeping it made the label space
 pathologically imbalanced and duplicated the binary task inside the multiclass
-one. Week~2 reframed it: benign rows are dropped, leaving \num{29298} malware
-rows across 15 families. All 15-class numbers in this report use that
+one. The task was reframed: benign rows are dropped, leaving \num{29298}
+malware rows across 15 families. All 15-class numbers in this report use that
 definition, which is why they are not comparable to Figure~\ref{fig:w1}(b).
 
-\section{Week 4 --- a second dataset, and the encoding verdict}
+\section{A second dataset, and the encoding comparison}
 
 \subsection{EMBER 2018}
 
-A second dataset was added to test whether any conclusion was an artifact of
-CIC. EMBER 2018 contributes static PE features in 2381 dimensions. Work uses an
+A second dataset tests whether any conclusion is an artifact of CIC. EMBER 2018 contributes static PE features in 2381 dimensions. Work uses an
 \num{18014}-row extract of the published test set; the full set is a single
 $200\,000 \times 2384$ block that cannot be read incrementally. Its 15-class task
 keeps the 15 largest families and downsamples each to the smallest, giving
@@ -209,14 +201,14 @@ A third dataset was scoped and its multiclass labelling scheme designed and
 validated over 19.7M rows: dominant-tag argmax over 11 behaviour-tag counts,
 ties broken by declared column order, all-zero-tag rows dropped. The feature
 store was never fetched and no sweep was run --- these are independent pieces of
-work, and only the first was completed. §\ref{sec:notdone} states the blocker.
+work and only the first was completed. §\ref{sec:notdone} states the blocker.
 
-\section{Week 5 --- completing the baseline and finding the mechanism}
+\section{Results}
 
-\subsection{The classical baseline was too weak}
+\subsection{Classical against quantum on EMBER}
 
-Until Week~5 the EMBER comparison ran SVM only, so every EMBER margin on record
-was a QSVM-versus-SVM margin. Adding the other three models changed the numbers:
+An early version of this comparison ran SVM only on the classical side, which
+measured the QSVM against a sub-optimal baseline. The full four-model table:
 
 \begin{table}[htbp]
 \centering
@@ -242,11 +234,11 @@ S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
 \end{tabular}
 \end{table}
 
-Random forest beats SVM on every binary cell, so the gap widens from $+0.0727$
-to $+0.0995$ at \nc{}~$=1$, $+0.1222$ to $+0.1491$ at $3$, and $+0.1587$ to
-$+0.1697$ at $6$. On the 15-class task SVM is genuinely the strongest baseline
-at \nc{}~$\in\{3,6\}$, so those margins stand. Four of six cells move, and every
-one of them moves against the quantum pipeline.
+Random forest beats SVM on every binary cell, which widens the classical
+advantage from $+0.0727$ to $+0.0995$ at \nc{}~$=1$, from $+0.1222$ to $+0.1491$
+at $3$, and from $+0.1587$ to $+0.1697$ at $6$. On the 15-class task SVM is
+genuinely the strongest baseline at \nc{}~$\in\{3,6\}$. Four of six cells change,
+and every one changes against the quantum pipeline.
 
 \begin{figure}[htbp]
 \centering
@@ -260,9 +252,8 @@ gap widens with capacity rather than closing.}
 
 \subsection{The subsample the project rests on}
 
-Every quantum result since Week~2 is computed on 1000 rows. Validating that this
-subsample represents its population was specified in Week~2 and executed in
-Week~5. Read against the null expectation --- a faithful subsample still rejects
+Every quantum result is computed on 1000 rows, so the subsample must represent
+its population. Read against the null expectation --- a faithful subsample still rejects
 about $\alpha \cdot n_{\mathrm{features}}$ features by chance --- CIC rejects
 \textbf{0} of 55 where $\approx 2.75$ were expected, and EMBER \textbf{1} of
 2381 where $\approx 119$ were. Maximum class-proportion drift is below $0.001$
@@ -272,8 +263,10 @@ on both. Both subsamples are faithful.
 
 The QSVM sits at the random baseline on CIC 15-class ($0.056$--$0.079$ against
 chance $\approx 0.067$) while reaching $0.42$--$0.52$ on EMBER 15-class. Class
-imbalance and qubit count had already been ruled out. Two measurements separate
-a dataset effect from a kernel effect.
+imbalance and qubit count are both ruled out --- EMBER's families are exactly
+balanced and CIC's only $1.7\times$ imbalanced, and extending CIC to 8 qubits
+does not help. Two further measurements separate a dataset effect from a kernel
+effect.
 
 \paragraph{Feature geometry --- a dataset effect.} On the identical projected
 features, EMBER's families are $\approx 8\times$ more separable by Fisher ratio
@@ -328,11 +321,6 @@ $p=0.05$ and above zero.}
 \label{fig:sig}
 \end{figure}
 
-Paired significance testing was specified in Week~1, built, unit-tested, and
-executed for the first time in Week~5. Until then, four weeks of ``QSVM loses to
-classical'' rested on differences in mean macro-F1 with no test that any gap
-exceeded fold-to-fold noise.
-
 All 84 testable pairs favour the classical model and all 84 reach $p<0.05$ on
 the paired $t$-test; the worst $p$-value across every pair is $0.0241$.
 
@@ -342,7 +330,7 @@ test cannot reach $0.05$ at this fold count regardless of effect size; all 84
 hitting the floor means every pair achieved the most extreme rank configuration
 available. Six folds would put $0.03125$ within reach.
 
-\section{Cumulative result}
+\section{The comparison in one chart}
 
 \begin{figure}[htbp]
 \centering
@@ -381,9 +369,9 @@ classical/quantum alignment point; a second reduction with no classical
 counterpart would break it.
 \item[CTGAN-augmented run] Blocked on the augmented dataset from another team.
 The pipeline accepts any parquet, so nothing is outstanding on this side.
-\item[Weighted F1 on existing results] The metric was added in Week~5. No sweep
-was re-run, so no result in this report carries it. It matters most on CIC
-15-class, where families run 48--82 rows in the subsample.
+\item[Weighted F1] Implemented, but no sweep was re-run afterwards, so no
+result in this report carries it. It matters most on CIC 15-class, where
+families run 48--82 rows in the subsample.
 \end{description}
 
 \section{Untestable configurations}
@@ -395,15 +383,15 @@ parent/child run tracking in the experiment log and carries no recoverable sweep
 boundary; the 45 fold records per model resolve into two distinct sweeps per
 \nc{} with different configurations and no identifier separating them. The
 records are valid measurements and are used descriptively in
-Figures~\ref{fig:ceiling} and~\ref{fig:arc}, but no grouping was reconstructed,
+Figures~\ref{fig:ceiling} and~\ref{fig:arc}; no grouping was reconstructed,
 since the time gaps between runs are not a recorded boundary. The limitation is
 symmetric across frameworks.
 
 McNemar's test between frameworks needs per-sample predictions from both models
 on a shared test set. QSVM predictions were not persisted during these sweeps;
-persistence was added in Week~5 but no sweep was re-run.
+persistence was added afterwards but no sweep was re-run.
 
-\section{Method notes carried forward}
+\section{Method notes}
 
 \begin{itemize}
 \item \textbf{Macro-F1, not accuracy.} On EMBER binary at \nc{}~$=1$ the QSVM
@@ -426,7 +414,7 @@ hardware execution and no noise model.
 
 \section{Summary}
 
-Across five weeks and two datasets, classical models beat the fidelity-kernel
+Across two datasets and two tasks, classical models beat the fidelity-kernel
 QSVM on every configuration where the task can discriminate at all, with
 $p<0.05$ on all 84 paired comparisons. The single configuration where the two
 were level --- CIC binary --- is saturated for every method, and level results
@@ -440,8 +428,8 @@ data, driving its Gram matrix toward a scaled identity. That is a statement abou
 the method, and it predicts where the approach will struggle on data nobody in
 this project has seen.
 
-\paragraph{Immediate next steps.} Tune \texttt{bandwidth} on CIC, the identified
-mechanism whose lever remains untested. Move to six outer folds so a
-non-parametric test becomes usable.
+\paragraph{Next steps.} Tune \texttt{bandwidth} on CIC, the identified mechanism
+whose lever remains untested. Move to six outer folds so a non-parametric test
+becomes usable.
 
 \end{document}

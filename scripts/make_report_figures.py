@@ -30,6 +30,8 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from loguru import logger  # noqa: E402
 
+from common import palette  # noqa: E402
+
 CSV_DIR = Path("docs/reports/logs/w5_csv")
 
 # Two output targets. Both are 6.3 in wide -- that is the text width of the
@@ -51,24 +53,11 @@ FULL_W = 6.3
 HALF_H = 2.5
 
 CLASSICAL = ["random_forest", "xgboost", "lightgbm", "svm"]
-NICE = {
-    "random_forest": "Random forest", "xgboost": "XGBoost",
-    "lightgbm": "LightGBM", "svm": "SVM",
-    "qsvm-angle": "QSVM (angle)", "qsvm-iqp": "QSVM (IQP)",
-    "cic-malmem": "CIC-MalMem", "ember-2018": "EMBER 2018",
-    "binary": "binary", "multiclass": "15-class",
-}
-# Colour-blind-safe (Okabe-Ito). Classical models share a warm family, quantum a
-# cool one, so the two frameworks separate at a glance even in greyscale print.
-COLOR = {
-    "random_forest": "#D55E00", "xgboost": "#E69F00",
-    "lightgbm": "#CC79A7", "svm": "#8C510A",
-    "qsvm-angle": "#0072B2", "qsvm-iqp": "#009E73",
-}
-MARKER = {
-    "random_forest": "o", "xgboost": "s", "lightgbm": "^", "svm": "D",
-    "qsvm-angle": "v", "qsvm-iqp": "P",
-}
+# Colours, markers and labels come from common.palette so the same hue means
+# the same thing in every figure of every document.
+NICE = palette.LABEL
+COLOR = palette.MODEL
+MARKER = palette.MARKER
 RANDOM_15 = 1.0 / 15.0
 BAR_FS = 6.5    # rebound per target in main()
 
@@ -170,8 +159,8 @@ def fig_kernel_diagnostics() -> None:
     x = np.arange(len(order))
     w = 0.34
     for i, (kern, label, col) in enumerate([
-        ("qsvm_fidelity", "Fidelity kernel (QSVM)", "#0072B2"),
-        ("rbf_control", "RBF control", "#D55E00"),
+        ("qsvm_fidelity", "Fidelity kernel (QSVM)", palette.KERNEL["qsvm_fidelity"]),
+        ("rbf_control", "RBF control", palette.KERNEL["rbf_control"]),
     ]):
         vals = [k[(k.dataset == d) & (k.kernel == kern)]["offdiag_std"].iloc[0]
                 for d in order]
@@ -185,8 +174,8 @@ def fig_kernel_diagnostics() -> None:
     ax1.legend(loc="upper center", ncol=1)
 
     for i, (kern, label, col) in enumerate([
-        ("qsvm_fidelity", "Fidelity kernel (QSVM)", "#0072B2"),
-        ("rbf_control", "RBF control", "#D55E00"),
+        ("qsvm_fidelity", "Fidelity kernel (QSVM)", palette.KERNEL["qsvm_fidelity"]),
+        ("rbf_control", "RBF control", palette.KERNEL["rbf_control"]),
     ]):
         vals = [k[(k.dataset == d) & (k.kernel == kern)]
                 ["alignment_excess_over_baseline"].iloc[0] for d in order]
@@ -211,7 +200,8 @@ def fig_concentration_sweep(master: pd.DataFrame) -> None:
             & df["gram_offdiag_std_mean"].notna()]
     fig, ax = plt.subplots(figsize=(FULL_W * 0.52, HALF_H))
     for dataset, ls in [("cic-malmem", "-"), ("ember-2018", "--")]:
-        for enc, col in [("angle", "#0072B2"), ("iqp", "#009E73")]:
+        for enc, col in [("angle", palette.QUANTUM["qsvm-angle"]),
+                         ("iqp", palette.QUANTUM["qsvm-iqp"])]:
             s = df[(df.dataset == dataset) & (df.encoding == enc)] \
                 .sort_values("n_components")
             if s.empty:
@@ -234,9 +224,10 @@ def fig_significance() -> None:
     """Effect size against p-value for all 84 tested pairs."""
     s = pd.read_csv(CSV_DIR / "w5_significance_ttest_wilcoxon.csv")
     fig, ax = plt.subplots(figsize=(FULL_W * 0.56, HALF_H + 0.2))
-    groups = [("cic-malmem", "multiclass", "#D55E00", "o"),
-              ("ember-2018", "binary", "#0072B2", "s"),
-              ("ember-2018", "multiclass", "#009E73", "^")]
+    groups = [(ds, task, palette.DATASET_TASK[(ds, task)], mk) for ds, task, mk in
+              [("cic-malmem", "multiclass", "o"),
+               ("ember-2018", "binary", "s"),
+               ("ember-2018", "multiclass", "^")]]
     for dataset, task, col, mk in groups:
         g = s[(s.dataset == dataset) & (s.task == task)]
         ax.scatter(g["ttest_pvalue"], g["delta_classical_minus_qsvm"],
@@ -261,7 +252,8 @@ def fig_geometry() -> None:
     """Class separability of the projected features, CIC against EMBER."""
     g = pd.read_csv(CSV_DIR / "w5_feature_geometry.csv").sort_values("n_components")
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(FULL_W, HALF_H))
-    for dataset, col, mk in [("cic", "#D55E00", "o"), ("ember", "#0072B2", "s")]:
+    for dataset, col, mk in [("cic", palette.DATASET["cic"], "o"),
+                             ("ember", palette.DATASET["ember"], "s")]:
         s = g[g.dataset == dataset]
         label = NICE["cic-malmem"] if dataset == "cic" else NICE["ember-2018"]
         ax1.errorbar(s["n_components"], s["mean_fisher_ratio_mean"],
@@ -293,9 +285,9 @@ def fig_representativeness() -> None:
     x = np.arange(len(r))
     w = 0.34
     b1 = ax.bar(x - w / 2, r["expected_rejects_under_null"], w,
-                label="expected under the null", color="#BBBBBB")
+                label="expected under the null", color=palette.NEUTRAL)
     b2 = ax.bar(x + w / 2, r["n_reject"], w, label="observed",
-                color="#0072B2")
+                color=palette.FRAMEWORK["quantum"])
     ax.bar_label(b1, fmt="%.2f", fontsize=BAR_FS, padding=1.5)
     ax.bar_label(b2, fmt="%.0f", fontsize=BAR_FS, padding=1.5)
     ax.set_xticks(x, [f"{names[d]}\n({int(n)} features)"

@@ -26,6 +26,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from loguru import logger  # noqa: E402
 
+from common import palette  # noqa: E402
 from common.significance import clean_sweep_folds  # noqa: E402
 
 MLFLOW_CSV = "results/mlflow_runs.csv"
@@ -39,12 +40,10 @@ HALF_H = 2.5
 BAR_FS = 6.5
 
 CLASSICAL = ["random_forest", "xgboost", "lightgbm", "svm"]
-NICE = {"random_forest": "Random forest", "xgboost": "XGBoost",
-        "lightgbm": "LightGBM", "svm": "SVM", "qsvm": "QSVM"}
-COLOR = {"random_forest": "#D55E00", "xgboost": "#E69F00",
-         "lightgbm": "#CC79A7", "svm": "#8C510A", "qsvm": "#0072B2"}
-MARKER = {"random_forest": "o", "xgboost": "s", "lightgbm": "^",
-          "svm": "D", "qsvm": "v"}
+# Shared vocabulary -- see common.palette for what each hue family means.
+NICE = palette.LABEL
+COLOR = palette.MODEL
+MARKER = palette.MARKER
 
 # --- Week 1, from week1_cic_malmem_classical_baseline_report.md -------------
 # Full CIC-MalMem, no PCA, no subsampling. These predate experiment tracking in
@@ -176,7 +175,7 @@ def fig_binary_ceiling(df: pd.DataFrame) -> None:
     b = df[(df["params.dataset"] == "cic-malmem")
            & (df["params.task"] == "binary")
            & df["metrics.f1_macro"].notna()]
-    fig, ax = plt.subplots(figsize=(FULL_W * 0.52, HALF_H))
+    fig, ax = plt.subplots(figsize=(FULL_W * 0.60, HALF_H))
     for model in CLASSICAL + ["qsvm"]:
         g = b[b["params.model"] == model].groupby("params.n_components")
         if not len(g):
@@ -188,10 +187,14 @@ def fig_binary_ceiling(df: pd.DataFrame) -> None:
                     label=NICE[model])
     ax.set_xlabel(_nc())
     ax.set_ylabel("macro-F1")
-    ax.set_ylim(0.94, 1.005)
+    ax.set_ylim(0.965, 1.005)
     ax.set_xticks([1, 2, 3, 4, 6])
     ax.grid(True, axis="y")
-    ax.legend(loc="lower right", ncol=2)
+    # Five entries do not fit beside the data once the slide font is applied;
+    # putting the legend under the axes keeps the curves unobstructed at both
+    # type sizes.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=3,
+              columnspacing=1.2, handlelength=1.7)
     fig.tight_layout()
     fig.savefig(OUT_DIR / "fig_cic_binary_ceiling.pdf")
     plt.close(fig)
@@ -219,7 +222,8 @@ def fig_quantum_cost(df: pd.DataFrame) -> None:
     g = q.groupby("params.n_components")["us_per_eval"]
     m, s = g.mean(), g.std(ddof=0)
     fig, ax = plt.subplots(figsize=(FULL_W * 0.52, HALF_H))
-    ax.errorbar(m.index, m.values, yerr=s.values, color="#0072B2", marker="o",
+    ax.errorbar(m.index, m.values, yerr=s.values,
+                color=palette.FRAMEWORK["quantum"], marker="o",
                 capsize=2, elinewidth=0.7)
     ax.set_xlabel(_nc() + "  (= qubits)")
     ax.set_ylabel(r"cost per circuit pair ($\mu$s)")
@@ -250,7 +254,8 @@ def fig_encoding_verdict(sw: pd.DataFrame) -> None:
         x = np.arange(len(ncs))
         ax.fill_between(x, -band, band, color="0.85",
                         label="fold-to-fold spread")
-        ax.bar(x, delta.values, 0.45, color="#009E73", label="IQP $-$ angle")
+        ax.bar(x, delta.values, 0.45, color=palette.QUANTUM["qsvm-iqp"],
+               label="IQP $-$ angle")
         ax.axhline(0, color="0.2", lw=0.7)
         ax.set_xticks(x, [str(n) for n in ncs])
         ax.set_xlabel(_nc())
@@ -306,9 +311,11 @@ def fig_project_arc(sw: pd.DataFrame) -> None:
     w = 0.36
     fig, ax = plt.subplots(figsize=(FULL_W * 0.56, HALF_H))
     hatch = ["//" if r else "" for r in from_raw]
-    b1 = ax.bar(x - w / 2, best_c, w, label="best classical", color="#D55E00",
+    b1 = ax.bar(x - w / 2, best_c, w, label="best classical",
+                color=palette.FRAMEWORK["classical"],
                 hatch=hatch, edgecolor="white", linewidth=0)
-    b2 = ax.bar(x + w / 2, best_q, w, label="best QSVM", color="#0072B2",
+    b2 = ax.bar(x + w / 2, best_q, w, label="best QSVM",
+                color=palette.FRAMEWORK["quantum"],
                 hatch=hatch, edgecolor="white", linewidth=0)
     ax.bar_label(b1, fmt="%.3f", fontsize=BAR_FS - 0.5, padding=6, rotation=90)
     ax.bar_label(b2, fmt="%.3f", fontsize=BAR_FS - 0.5, padding=6, rotation=90)
