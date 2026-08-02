@@ -98,6 +98,39 @@ building a classical RBF kernel on the identical feature matrix, we separate the
 hypothesis that CIC's features are hard from the hypothesis that the fidelity
 kernel fails on them, and find for the latter.
 
+\subsection*{Progress this week}
+
+\begin{center}
+\small
+\begin{tabular}{@{}llp{0.50\textwidth}@{}}
+\toprule
+\textbf{Day} & \textbf{Work} & \textbf{Outcome} \\
+\midrule
+29 & EMBER four-model classical baseline
+   & Classical advantage on binary widened by $0.011$ to $0.027$ macro-F1 \\
+30 & Third-corpus scope decision
+   & Recorded separately from this report \\
+31 & Subsample validation and class separability
+   & Subsamples verified faithful; separability gap quantified \\
+32 & ---
+   & Outside this track \\
+33 & Kernel concentration and target alignment
+   & Collapse mechanism identified against an RBF control \\
+34 & Paired significance tests and master tables
+   & 84 of 84 comparable pairs at $p<0.05$ \\
+35 & Consolidation
+   & Reports and paper sections written \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Six of the seven scheduled days fall inside this track and all six are complete.
+The week added 90 cross-validation fold runs to the experiment log, bringing it
+to 976, and the implementation carries 149 passing tests. Three of the six days
+changed a previously published conclusion rather than extending it: the
+completed baseline on day 29, the mechanism on day 33, and the significance
+tests on day 34.
+
 \section{Materials and methods}
 \label{sec:methods}
 
