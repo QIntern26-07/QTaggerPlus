@@ -6,21 +6,25 @@ quantum work is complete -- items here are known-open, not forgotten.
 
 ## Open
 
-- [ ] **SOREL-20M — labelling decided, features not fetched.** The multiclass
-  label question is CLOSED: dominant-tag argmax over the 11 raw behavior-tag
-  counts, ties broken by declared column order, all-zero-tag rows dropped
-  (see `docs/reports/w4_sorel_labelling_decision.md`). What remains open is
-  the feature store: `ember_features/data.mdb` is a single 71.6 GiB
-  memory-mapped LMDB with no key-level remote access, so the whole file must
-  be local before any row can be read — not yet downloaded — and no QSVM
-  sweep has been run against it. `meta.db` (3.5 GiB, labels only) has been
-  fetched and analyzed.
 - [ ] **VQC is not implemented and not planned to be implemented by this
   contributor.** Only QSVM exists in `src/quantum/`. Flag to the team/mentors
   that Week 2's "extend the existing binary QSVM/VQC architecture toward
   multi-class" (Day 2) is QSVM-only unless someone else picks this up.
 
 ## Decided (no action needed, recorded for reference)
+
+- **SOREL-20M — CLOSED, not deferred** (2026-08-01,
+  `docs/reports/w5_day30_sorel_closeout.md`). The multiclass labelling design is
+  delivered: dominant-tag argmax over the 11 raw behaviour-tag counts, ties broken
+  by declared column order, all-zero-tag rows dropped, validated over 19.7M rows
+  from `meta.db` (`docs/reports/w4_sorel_labelling_decision.md`). The feature store
+  was never fetched and **no SOREL sweep was ever run** — `results/mlflow_runs.csv`
+  holds zero `sorel-20m` rows. Do not read the labelling report as partial results.
+  Neither disk (227 GiB free vs 71.6 GiB needed) nor RAM (LMDB is memory-mapped;
+  reads page through the OS cache) is the blocker — it is the fixed 71.6 GiB
+  download against the time available, unavoidable because LMDB has no key-level
+  remote access. Resume conditions, source URI and the already-wired CLI surface
+  are documented in the close-out; nothing needs re-investigating.
 
 - **EMBER experiments — done** (2026-07-25/26,
   `docs/reports/w4_jul-25_ember_binary.md`, `docs/reports/w4_jul-26_ember_multiclass.md`).

@@ -39,6 +39,19 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def predictions_path(dataset: str, task: str, n_components: int, encodings) -> str:
+    """Per-fold prediction file for one quantum sweep.
+
+    Mirrors the classical CLI's persistence so paired significance tests can
+    reach QSVM predictions at sample level. The encoding tag follows
+    run.run_quantum_cv's rule: the single encoding name, or "joint" when one
+    sweep tunes over several. n_components is in the name because a sweep at a
+    different qubit budget is a different result, not an overwrite of this one.
+    """
+    tag = encodings[0] if len(encodings) == 1 else "joint"
+    return f"results/{dataset}/qsvm_{task}_nc{n_components}_{tag}_predictions.npz"
+
+
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     logger.add("run.log", rotation="10 MB")
@@ -107,10 +120,15 @@ def main(argv=None) -> int:
                 "C": [0.1, 1.0, 10.0], "class_weight": [None, "balanced"]}
         dataset_name = {"cic": "cic-malmem", "ember": "ember-2018",
                         "sorel": "sorel-20m"}[args.dataset]
-        run_quantum_cv(X, y, task, folds, args.n_components, grid=grid,
-                       seed=args.seed, use_mlflow=args.mlflow,
-                       tracking_uri=args.tracking_uri, n_jobs=args.n_jobs,
-                       dataset_name=dataset_name)
+        records = run_quantum_cv(X, y, task, folds, args.n_components, grid=grid,
+                                 seed=args.seed, use_mlflow=args.mlflow,
+                                 tracking_uri=args.tracking_uri, n_jobs=args.n_jobs,
+                                 dataset_name=dataset_name)
+        pred_path = predictions_path(args.dataset, task, args.n_components,
+                                     args.encodings)
+        Path(pred_path).parent.mkdir(parents=True, exist_ok=True)
+        data.save_predictions(records, pred_path)
+        logger.info(f"wrote per-fold predictions to {pred_path}")
     return 0
 
 

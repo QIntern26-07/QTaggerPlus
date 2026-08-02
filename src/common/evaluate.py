@@ -27,6 +27,7 @@ def compute_metrics(y_true, y_pred, y_proba, task: str) -> dict:
         "precision": precision_score(y_true, y_pred, average="macro", zero_division=0),
         "recall": recall_score(y_true, y_pred, average="macro", zero_division=0),
         "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
+        "f1_weighted": f1_score(y_true, y_pred, average="weighted", zero_division=0),
         "mcc": matthews_corrcoef(y_true, y_pred),
     }
     if task == "binary":

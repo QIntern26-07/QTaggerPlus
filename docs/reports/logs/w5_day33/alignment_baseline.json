@@ -1,0 +1,12 @@
+{
+  "cic": {
+    "constant_kernel_alignment_baseline": 0.26002403735039575,
+    "quantum_excess": -6.870927541996474e-05,
+    "rbf_excess": -0.003928009192289306
+  },
+  "ember": {
+    "constant_kernel_alignment_baseline": 0.2582150266735071,
+    "quantum_excess": 0.030208055972903214,
+    "rbf_excess": 0.027439028930826448
+  }
+}

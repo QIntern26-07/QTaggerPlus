@@ -1,0 +1,1533 @@
+{
+  "comparisons": [
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.05496877845820428,
+      "classical_mean": 0.12830469957598536,
+      "delta": 0.07333592111778109,
+      "ttest": {
+        "statistic": -4.731539547768128,
+        "pvalue": 0.009093752055044067
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.05496877845820428,
+      "classical_mean": 0.10101408832749752,
+      "delta": 0.046045309869293234,
+      "ttest": {
+        "statistic": -9.837576495594643,
+        "pvalue": 0.0005987683021864619
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.05496877845820428,
+      "classical_mean": 0.1094444474827176,
+      "delta": 0.05447566902451332,
+      "ttest": {
+        "statistic": -5.149757650812592,
+        "pvalue": 0.0067455862233583306
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.05496877845820428,
+      "classical_mean": 0.10746862194622038,
+      "delta": 0.0524998434880161,
+      "ttest": {
+        "statistic": -10.112798828412899,
+        "pvalue": 0.000538111767192207
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.05593358032321423,
+      "classical_mean": 0.12830469957598536,
+      "delta": 0.07237111925277113,
+      "ttest": {
+        "statistic": -4.693898841140678,
+        "pvalue": 0.009350636073041553
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.05593358032321423,
+      "classical_mean": 0.10101408832749752,
+      "delta": 0.04508050800428329,
+      "ttest": {
+        "statistic": -5.972233329025782,
+        "pvalue": 0.0039490828446908125
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.05593358032321423,
+      "classical_mean": 0.1094444474827176,
+      "delta": 0.05351086715950337,
+      "ttest": {
+        "statistic": -4.539644064404161,
+        "pvalue": 0.010499951679471924
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.05593358032321423,
+      "classical_mean": 0.10746862194622038,
+      "delta": 0.05153504162300615,
+      "ttest": {
+        "statistic": -9.584941890859094,
+        "pvalue": 0.0006620913078559404
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-joint",
+      "classical": "random_forest",
+      "qsvm_mean": 0.05765708908839197,
+      "classical_mean": 0.12830469957598536,
+      "delta": 0.0706476104875934,
+      "ttest": {
+        "statistic": -4.422050084830902,
+        "pvalue": 0.011492603811749507
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-joint",
+      "classical": "xgboost",
+      "qsvm_mean": 0.05765708908839197,
+      "classical_mean": 0.10101408832749752,
+      "delta": 0.04335699923910555,
+      "ttest": {
+        "statistic": -6.055557622875549,
+        "pvalue": 0.003753471525768435
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-joint",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.05765708908839197,
+      "classical_mean": 0.1094444474827176,
+      "delta": 0.05178735839432563,
+      "ttest": {
+        "statistic": -4.380852454798383,
+        "pvalue": 0.011867006888581623
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-joint",
+      "classical": "svm",
+      "qsvm_mean": 0.05765708908839197,
+      "classical_mean": 0.10746862194622038,
+      "delta": 0.04981153285782841,
+      "ttest": {
+        "statistic": -8.889171510036112,
+        "pvalue": 0.0008849632880229111
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.05846775009588913,
+      "classical_mean": 0.13983493205054426,
+      "delta": 0.08136718195465513,
+      "ttest": {
+        "statistic": -12.021479154726073,
+        "pvalue": 0.00027450241800175716
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.05846775009588913,
+      "classical_mean": 0.12698421157190679,
+      "delta": 0.06851646147601766,
+      "ttest": {
+        "statistic": -9.834428777237198,
+        "pvalue": 0.0005995098299471557
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.05846775009588913,
+      "classical_mean": 0.1185346803402512,
+      "delta": 0.06006693024436208,
+      "ttest": {
+        "statistic": -5.751015756801219,
+        "pvalue": 0.004532502601044515
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.05846775009588913,
+      "classical_mean": 0.1308613812338487,
+      "delta": 0.07239363113795956,
+      "ttest": {
+        "statistic": -5.221724955685036,
+        "pvalue": 0.006419890733285781
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.07068357969607764,
+      "classical_mean": 0.13983493205054426,
+      "delta": 0.06915135235446662,
+      "ttest": {
+        "statistic": -6.946543783881665,
+        "pvalue": 0.0022559891825257618
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.07068357969607764,
+      "classical_mean": 0.12698421157190679,
+      "delta": 0.05630063187582915,
+      "ttest": {
+        "statistic": -8.295795450190333,
+        "pvalue": 0.00115286284909227
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.07068357969607764,
+      "classical_mean": 0.1185346803402512,
+      "delta": 0.04785110064417357,
+      "ttest": {
+        "statistic": -4.112462666927015,
+        "pvalue": 0.014702559044764404
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.07068357969607764,
+      "classical_mean": 0.1308613812338487,
+      "delta": 0.06017780153777105,
+      "ttest": {
+        "statistic": -3.7981277272515803,
+        "pvalue": 0.019134465680309062
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-joint",
+      "classical": "random_forest",
+      "qsvm_mean": 0.05849303198827214,
+      "classical_mean": 0.13983493205054426,
+      "delta": 0.08134190006227213,
+      "ttest": {
+        "statistic": -10.207022679300497,
+        "pvalue": 0.0005191146704253787
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-joint",
+      "classical": "xgboost",
+      "qsvm_mean": 0.05849303198827214,
+      "classical_mean": 0.12698421157190679,
+      "delta": 0.06849117958363465,
+      "ttest": {
+        "statistic": -11.423125684017718,
+        "pvalue": 0.00033507551734119094
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-joint",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.05849303198827214,
+      "classical_mean": 0.1185346803402512,
+      "delta": 0.06004164835197907,
+      "ttest": {
+        "statistic": -7.089141755753014,
+        "pvalue": 0.0020905218340994806
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-joint",
+      "classical": "svm",
+      "qsvm_mean": 0.05849303198827214,
+      "classical_mean": 0.1308613812338487,
+      "delta": 0.07236834924557656,
+      "ttest": {
+        "statistic": -5.060814250151006,
+        "pvalue": 0.007176440828695275
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.06813241013003646,
+      "classical_mean": 0.1509929786505269,
+      "delta": 0.08286056852049045,
+      "ttest": {
+        "statistic": -4.874043170291212,
+        "pvalue": 0.008195740887739469
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.06813241013003646,
+      "classical_mean": 0.1493892811235486,
+      "delta": 0.08125687099351214,
+      "ttest": {
+        "statistic": -5.961554643741159,
+        "pvalue": 0.003975047801694693
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.06813241013003646,
+      "classical_mean": 0.15712245865844301,
+      "delta": 0.08899004852840656,
+      "ttest": {
+        "statistic": -5.621412603860975,
+        "pvalue": 0.004923605875103666
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.06813241013003646,
+      "classical_mean": 0.1647451081849126,
+      "delta": 0.09661269805487613,
+      "ttest": {
+        "statistic": -6.609532164796508,
+        "pvalue": 0.002716049697846624
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.0793682270676792,
+      "classical_mean": 0.1509929786505269,
+      "delta": 0.07162475158284771,
+      "ttest": {
+        "statistic": -8.80247951140532,
+        "pvalue": 0.0009188801277773035
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.0793682270676792,
+      "classical_mean": 0.1493892811235486,
+      "delta": 0.0700210540558694,
+      "ttest": {
+        "statistic": -8.299218739235032,
+        "pvalue": 0.0011510489984992102
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.0793682270676792,
+      "classical_mean": 0.15712245865844301,
+      "delta": 0.07775423159076382,
+      "ttest": {
+        "statistic": -5.718703849463073,
+        "pvalue": 0.004626335757409057
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.0793682270676792,
+      "classical_mean": 0.1647451081849126,
+      "delta": 0.08537688111723339,
+      "ttest": {
+        "statistic": -6.837072103827499,
+        "pvalue": 0.002394082522385552
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-joint",
+      "classical": "random_forest",
+      "qsvm_mean": 0.0707703494637253,
+      "classical_mean": 0.1509929786505269,
+      "delta": 0.0802226291868016,
+      "ttest": {
+        "statistic": -6.733191774586663,
+        "pvalue": 0.002534881831414831
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-joint",
+      "classical": "xgboost",
+      "qsvm_mean": 0.0707703494637253,
+      "classical_mean": 0.1493892811235486,
+      "delta": 0.0786189316598233,
+      "ttest": {
+        "statistic": -11.126253350808996,
+        "pvalue": 0.00037129747639464393
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-joint",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.0707703494637253,
+      "classical_mean": 0.15712245865844301,
+      "delta": 0.08635210919471771,
+      "ttest": {
+        "statistic": -10.532649063389057,
+        "pvalue": 0.0004595605156330898
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "cic-malmem",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-joint",
+      "classical": "svm",
+      "qsvm_mean": 0.0707703494637253,
+      "classical_mean": 0.1647451081849126,
+      "delta": 0.09397475872118728,
+      "ttest": {
+        "statistic": -9.859048597837951,
+        "pvalue": 0.0005937402451321989
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.45322434443718534,
+      "classical_mean": 0.558183651105556,
+      "delta": 0.10495930666837067,
+      "ttest": {
+        "statistic": -4.981753023589055,
+        "pvalue": 0.0075878947813582615
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.45322434443718534,
+      "classical_mean": 0.5450716303165196,
+      "delta": 0.09184728587933427,
+      "ttest": {
+        "statistic": -5.347614935523715,
+        "pvalue": 0.005895068573162907
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.45322434443718534,
+      "classical_mean": 0.5092935288790749,
+      "delta": 0.05606918444188952,
+      "ttest": {
+        "statistic": -3.53433810218244,
+        "pvalue": 0.02413607861324812
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.45322434443718534,
+      "classical_mean": 0.5313954328560812,
+      "delta": 0.0781710884188958,
+      "ttest": {
+        "statistic": -8.58561286216361,
+        "pvalue": 0.0010110541053851736
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.4586800836140913,
+      "classical_mean": 0.558183651105556,
+      "delta": 0.09950356749146472,
+      "ttest": {
+        "statistic": -5.420189859290503,
+        "pvalue": 0.005616305796534167
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.4586800836140913,
+      "classical_mean": 0.5450716303165196,
+      "delta": 0.08639154670242832,
+      "ttest": {
+        "statistic": -5.730513288860437,
+        "pvalue": 0.004591767738662942
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.4586800836140913,
+      "classical_mean": 0.5092935288790749,
+      "delta": 0.05061344526498357,
+      "ttest": {
+        "statistic": -3.849702759884181,
+        "pvalue": 0.01830724011771976
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.4586800836140913,
+      "classical_mean": 0.5313954328560812,
+      "delta": 0.07271534924198986,
+      "ttest": {
+        "statistic": -9.829499240958075,
+        "pvalue": 0.0006006734040582655
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.4923946968218448,
+      "classical_mean": 0.6574827217845197,
+      "delta": 0.16508802496267494,
+      "ttest": {
+        "statistic": -4.274614965900336,
+        "pvalue": 0.012902719115580887
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.4923946968218448,
+      "classical_mean": 0.6465250284398584,
+      "delta": 0.1541303316180136,
+      "ttest": {
+        "statistic": -4.008980261130367,
+        "pvalue": 0.016010146180773774
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.4923946968218448,
+      "classical_mean": 0.6433515549708316,
+      "delta": 0.15095685814898685,
+      "ttest": {
+        "statistic": -6.367067339456495,
+        "pvalue": 0.003119951919694132
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.4923946968218448,
+      "classical_mean": 0.6305534481296396,
+      "delta": 0.13815875130779487,
+      "ttest": {
+        "statistic": -6.5771862984940235,
+        "pvalue": 0.002766046032622154
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.5083580434639654,
+      "classical_mean": 0.6574827217845197,
+      "delta": 0.14912467832055432,
+      "ttest": {
+        "statistic": -4.568106412901961,
+        "pvalue": 0.010275514602434688
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.5083580434639654,
+      "classical_mean": 0.6465250284398584,
+      "delta": 0.13816698497589297,
+      "ttest": {
+        "statistic": -4.366112796931905,
+        "pvalue": 0.012004533904589538
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.5083580434639654,
+      "classical_mean": 0.6433515549708316,
+      "delta": 0.13499351150686623,
+      "ttest": {
+        "statistic": -10.355675084738797,
+        "pvalue": 0.0004908065787036099
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.5083580434639654,
+      "classical_mean": 0.6305534481296396,
+      "delta": 0.12219540466567425,
+      "ttest": {
+        "statistic": -11.720943977330387,
+        "pvalue": 0.000303050093702968
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.5137703485856953,
+      "classical_mean": 0.6834706145293937,
+      "delta": 0.16970026594369847,
+      "ttest": {
+        "statistic": -5.062705954221677,
+        "pvalue": 0.00716693368667859
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.5137703485856953,
+      "classical_mean": 0.6680491149670307,
+      "delta": 0.15427876638133542,
+      "ttest": {
+        "statistic": -7.205703091587945,
+        "pvalue": 0.001966273044127589
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.5137703485856953,
+      "classical_mean": 0.6593205587149195,
+      "delta": 0.1455502101292242,
+      "ttest": {
+        "statistic": -4.49128295841671,
+        "pvalue": 0.010895087402388502
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.5137703485856953,
+      "classical_mean": 0.6724286391079743,
+      "delta": 0.1586582905222791,
+      "ttest": {
+        "statistic": -8.38670773622799,
+        "pvalue": 0.001105868737370201
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.5136751583392752,
+      "classical_mean": 0.6834706145293937,
+      "delta": 0.1697954561901185,
+      "ttest": {
+        "statistic": -4.277566821886121,
+        "pvalue": 0.012872500312921645
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.5136751583392752,
+      "classical_mean": 0.6680491149670307,
+      "delta": 0.15437395662775544,
+      "ttest": {
+        "statistic": -5.27620131152711,
+        "pvalue": 0.006186056092553045
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.5136751583392752,
+      "classical_mean": 0.6593205587149195,
+      "delta": 0.14564540037564422,
+      "ttest": {
+        "statistic": -3.620970394032057,
+        "pvalue": 0.02233796056100245
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "binary",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.5136751583392752,
+      "classical_mean": 0.6724286391079743,
+      "delta": 0.1587534807686991,
+      "ttest": {
+        "statistic": -5.54855588759707,
+        "pvalue": 0.005161640685989883
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.1687874423062498,
+      "classical_mean": 0.5561907822699944,
+      "delta": 0.3874033399637446,
+      "ttest": {
+        "statistic": -81.36619383344954,
+        "pvalue": 1.367533731500073e-07
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.1687874423062498,
+      "classical_mean": 0.5312993318673407,
+      "delta": 0.36251188956109087,
+      "ttest": {
+        "statistic": -22.937668927663584,
+        "pvalue": 2.1402827017361395e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.1687874423062498,
+      "classical_mean": 0.5410497296181371,
+      "delta": 0.3722622873118873,
+      "ttest": {
+        "statistic": -21.546870068101306,
+        "pvalue": 2.744124518179682e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.1687874423062498,
+      "classical_mean": 0.5294133321269644,
+      "delta": 0.3606258898207146,
+      "ttest": {
+        "statistic": -28.04490547553652,
+        "pvalue": 9.61752016688196e-06
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.1541059044527347,
+      "classical_mean": 0.5561907822699944,
+      "delta": 0.4020848778172597,
+      "ttest": {
+        "statistic": -19.40499145653997,
+        "pvalue": 4.1576445731548326e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.1541059044527347,
+      "classical_mean": 0.5312993318673407,
+      "delta": 0.377193427414606,
+      "ttest": {
+        "statistic": -14.988554068892778,
+        "pvalue": 0.00011543389154948367
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.1541059044527347,
+      "classical_mean": 0.5410497296181371,
+      "delta": 0.38694382516540243,
+      "ttest": {
+        "statistic": -15.623341967496144,
+        "pvalue": 9.80135227075355e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 1,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.1541059044527347,
+      "classical_mean": 0.5294133321269644,
+      "delta": 0.3753074276742297,
+      "ttest": {
+        "statistic": -16.69331338262613,
+        "pvalue": 7.545048630774943e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.3907884921141812,
+      "classical_mean": 0.7194150267875187,
+      "delta": 0.32862653467333747,
+      "ttest": {
+        "statistic": -9.80037346976184,
+        "pvalue": 0.0006076058073524416
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.3907884921141812,
+      "classical_mean": 0.7088932915246975,
+      "delta": 0.3181047994105163,
+      "ttest": {
+        "statistic": -9.572866295964369,
+        "pvalue": 0.0006653213808376651
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.3907884921141812,
+      "classical_mean": 0.7035166656421288,
+      "delta": 0.3127281735279476,
+      "ttest": {
+        "statistic": -9.575686580219188,
+        "pvalue": 0.0006645652422574836
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.3907884921141812,
+      "classical_mean": 0.7389146603571525,
+      "delta": 0.34812616824297127,
+      "ttest": {
+        "statistic": -12.263372241032009,
+        "pvalue": 0.0002539223299456957
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.47967988975021375,
+      "classical_mean": 0.7194150267875187,
+      "delta": 0.23973513703730492,
+      "ttest": {
+        "statistic": -13.507129581980632,
+        "pvalue": 0.00017385761510991813
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.47967988975021375,
+      "classical_mean": 0.7088932915246975,
+      "delta": 0.22921340177448374,
+      "ttest": {
+        "statistic": -11.635793597166224,
+        "pvalue": 0.00031180252289985896
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.47967988975021375,
+      "classical_mean": 0.7035166656421288,
+      "delta": 0.22383677589191503,
+      "ttest": {
+        "statistic": -10.327843688547645,
+        "pvalue": 0.000495957823077601
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 3,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.47967988975021375,
+      "classical_mean": 0.7389146603571525,
+      "delta": 0.2592347706069387,
+      "ttest": {
+        "statistic": -19.213367861739094,
+        "pvalue": 4.3244872876700175e-05
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "random_forest",
+      "qsvm_mean": 0.4231914469080187,
+      "classical_mean": 0.790284972037212,
+      "delta": 0.36709352512919335,
+      "ttest": {
+        "statistic": -8.427273621969642,
+        "pvalue": 0.0010856660517439577
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "xgboost",
+      "qsvm_mean": 0.4231914469080187,
+      "classical_mean": 0.7659059371642711,
+      "delta": 0.34271449025625245,
+      "ttest": {
+        "statistic": -7.701441073800704,
+        "pvalue": 0.001529536675574938
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.4231914469080187,
+      "classical_mean": 0.7709149311725378,
+      "delta": 0.34772348426451916,
+      "ttest": {
+        "statistic": -7.989415812440727,
+        "pvalue": 0.0013305795739453892
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-angle",
+      "classical": "svm",
+      "qsvm_mean": 0.4231914469080187,
+      "classical_mean": 0.7930427412212524,
+      "delta": 0.3698512943132337,
+      "ttest": {
+        "statistic": -9.685168418968942,
+        "pvalue": 0.0006360192913117662
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "random_forest",
+      "qsvm_mean": 0.5194531423927002,
+      "classical_mean": 0.790284972037212,
+      "delta": 0.2708318296445118,
+      "ttest": {
+        "statistic": -7.278732291778123,
+        "pvalue": 0.0018930579860923706
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "xgboost",
+      "qsvm_mean": 0.5194531423927002,
+      "classical_mean": 0.7659059371642711,
+      "delta": 0.2464527947715709,
+      "ttest": {
+        "statistic": -6.317937159616966,
+        "pvalue": 0.0032106001177009255
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "lightgbm",
+      "qsvm_mean": 0.5194531423927002,
+      "classical_mean": 0.7709149311725378,
+      "delta": 0.2514617887798376,
+      "ttest": {
+        "statistic": -6.873189966994334,
+        "pvalue": 0.0023473979591866843
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    },
+    {
+      "dataset": "ember-2018",
+      "task": "multiclass",
+      "n_components": 6,
+      "quantum": "qsvm-iqp",
+      "classical": "svm",
+      "qsvm_mean": 0.5194531423927002,
+      "classical_mean": 0.7930427412212524,
+      "delta": 0.27358959882855216,
+      "ttest": {
+        "statistic": -8.07664750230005,
+        "pvalue": 0.0012767220668440569
+      },
+      "wilcoxon": {
+        "statistic": 0.0,
+        "pvalue": 0.0625
+      }
+    }
+  ],
+  "skipped": [
+    "cic-malmem/binary/nc=1/qsvm/angle: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=1/qsvm/iqp: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=1/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=3/qsvm/angle: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=3/qsvm/iqp: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=3/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=6/qsvm/angle: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=6/qsvm/iqp: no FINISHED sweep with exactly 5 fold rows",
+    "cic-malmem/binary/nc=6/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/binary/nc=1/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/binary/nc=3/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/binary/nc=6/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/multiclass/nc=1/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/multiclass/nc=3/qsvm/joint: no FINISHED sweep with exactly 5 fold rows",
+    "ember-2018/multiclass/nc=6/qsvm/joint: no FINISHED sweep with exactly 5 fold rows"
+  ]
+}

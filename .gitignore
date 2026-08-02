@@ -323,6 +323,7 @@ mlflow.db
 AGENTS.md
 CLAUDE.md
 GEMINI.md
+.mcp.json
 
 # Scratch working notes
 temp/

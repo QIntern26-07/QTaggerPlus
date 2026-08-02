@@ -1,0 +1,3 @@
+dataset,source,n_full_rows,n_subsample_rows,n_classes,max_abs_proportion_diff,n_features,max_abs_mean_z,max_abs_std_ratio_dev,n_zero_variance_full,n_zero_variance_sample,n_reject,expected_rejects_under_null
+cic,data/cic_malmem/Obfuscated-MalMem2022.csv,29298,1000,15.0,0.0004425558058570589,55.0,0.045938757222582095,1.0,3.0,4.0,0.0,2.75
+ember,data/ember/ember2018_quantum_subset.parquet,14325,1000,15.0,0.0006666666666666626,2381.0,0.12228325658598065,2.7830773280153114,83.0,217.0,1.0,119.05000000000001
