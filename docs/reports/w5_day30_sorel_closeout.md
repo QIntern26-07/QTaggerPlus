@@ -91,7 +91,7 @@ both raise an explanatory `SystemExit` for `--dataset sorel` when the parquet is
 absent, and `common.data.load_sorel` / `task_xy(..., dataset="sorel")` already
 implement the dominant-tag task. Only the bytes are absent.
 
-## 5. Why closing rather than deferring is the honest call
+## 5. Why closing rather than deferring
 
 The project's remaining scope is QSVM analysis on CIC-MalMem and EMBER. A third
 dataset would strengthen generalisation claims, but the Week 5 deliverables do

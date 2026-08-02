@@ -126,9 +126,9 @@ multiclass baseline there, so those two Week 4 margins stand unchanged. At nc = 
 
 Reading of the four rows that move: none of them changes a conclusion — QSVM was
 already behind everywhere on EMBER — but each makes the deficit larger, so the
-direction of the correction is uniformly against the quantum pipeline. The
-honest one-line summary is that **Week 4 flattered QSVM on EMBER**, mildly on
-binary and not at all on multiclass at higher `nc`.
+direction of the correction is uniformly against the quantum pipeline. In one line:
+**every corrected cell moves against QSVM on EMBER** — mildly on binary, and not
+at all on multiclass at higher `nc`.
 
 Two patterns worth carrying into the Week 5 write-up:
 

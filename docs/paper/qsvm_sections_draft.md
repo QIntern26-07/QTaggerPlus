@@ -159,7 +159,7 @@ real and large.
 {1,3,6,8}`: +0.0009, +0.0122, +0.0113, +0.0046. At every `nc` the delta is
 **smaller than either encoding's own fold-to-fold standard deviation**
 (0.006–0.018), and the advantage does not grow with qubit count — it peaks at
-`nc=3`, not at the highest `nc` tested. The honest statement is that `iqp` has
+`nc=3`, not at the highest `nc` tested. What the data supports is that `iqp` has
 never been worse on CIC, not that it is meaningfully better.
 
 A methodological note worth carrying into the paper: comparing encodings by

@@ -5,13 +5,12 @@
 **Scope:** Days 29–35, plus every still-open item from Weeks 1–4 that falls in
 the QSVM track.
 
-## Format and honesty standard
+## Reporting standard
 
 Every number in this report traces to a committed per-day report or to
-`results/mlflow_runs.csv`. Where something was not done, it says so and gives the
-reason. Where a result is weaker than the headline, the weaker reading is stated
-in the same paragraph rather than in a footnote. Two claims made earlier in the
-week were wrong and are retracted in place — §7 lists them.
+`results/mlflow_runs.csv`. Items not done are listed with their reason. Where a
+result is weaker than the headline, the weaker reading is given alongside it.
+Two claims made earlier in the week were wrong; §7 retracts them.
 
 **Reproduction state at close:**
 
@@ -51,7 +50,7 @@ exactly 5 folds.
 **`random_forest` beats `svm` on binary at every `nc`**, so the Week 4 binary
 margins were understated by 0.011–0.027 macro-F1. On multiclass `svm` genuinely
 is the best baseline at `nc ∈ {3,6}`, so those margins stand. Four of six cells
-move, all in the same direction: **Week 4 flattered QSVM on EMBER.**
+move, all in the same direction: **every corrected cell moves against QSVM on EMBER.**
 
 Cost: 32 minutes total across six foreground invocations, no cell over 10
 minutes, no scope reduction needed.
@@ -161,8 +160,7 @@ their absence.
 
 ## 7. Two claims made this week that were wrong
 
-Recorded because the correction changes what a reader should believe, and
-because a consolidation report that only lists successes is not a record.
+Both corrections change what a reader should believe.
 
 1. **"The Day 29 crash was caused by a missing `--csv` flag, and the completed
    run scored the wrong rows."** Wrong on both counts. The corrected re-run
@@ -275,7 +273,7 @@ way. **Classical beats quantum on every testable configuration, and now with
 p < 0.05 on all 84 of them rather than on mean differences alone.** The Week 4
 EMBER margins turned out to be understated, not overstated. The one place the
 quantum pipeline was ever competitive — CIC binary — cannot be significance-tested
-from what was logged, and this report says so rather than quietly dropping it.
+from what was logged.
 
 What is genuinely new is the *why*: the fidelity kernel does not fail on CIC
 because CIC's features are hard, since a classical RBF kernel on the identical

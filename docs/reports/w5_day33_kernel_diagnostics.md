@@ -131,12 +131,11 @@ Exact equality is not expected — MLflow averages 5 folds, this rebuild uses fo
 the sweep, so the §2 numbers describe the same kernel the reported results came
 from.
 
-## 7. The tension this leaves, stated rather than papered over
+## 7. An unresolved tension
 
 §3 says neither kernel's Gram carries label information on CIC. §5 of
 `w5_day31` says classical SVM nonetheless reaches 0.108–0.165 macro-F1 on those
-features — well above the 0.0667 random baseline. Those two facts sit awkwardly
-together and the report will not pretend otherwise.
+features — well above the 0.0667 random baseline. The two are in tension.
 
 The reconciliation is that **kernel-target alignment is a global, unweighted
 average over all pairs, and an SVM does not need global alignment.** Alignment

@@ -184,7 +184,7 @@ understated by & 0.0268 & 0.0269 & 0.0110 \\
 
 On the 15-class task SVM genuinely is the strongest baseline at \nc{} $\in
 \{3,6\}$, so those two margins stand unchanged. Four of six cells move, all in
-the same direction: the margins recorded up to now flattered the quantum model on EMBER.
+the same direction: every corrected cell moves against the quantum model on EMBER.
 
 \begin{figure}[htbp]
 \centering
@@ -301,7 +301,7 @@ trend the \texttt{bandwidth} parameter exists to counteract.}
 \label{fig:conc}
 \end{figure}
 
-\paragraph{A tension we state rather than resolve.}
+\paragraph{An unresolved tension.}
 Alignment reports that neither kernel's Gram carries label information on CIC,
 yet a classical SVM reaches $0.16$ there. Kernel-target alignment is a global,
 unweighted average over all pairs, and an SVM requires no such thing --- it
@@ -417,8 +417,7 @@ Classical models beat the QSVM on every testable configuration, now with
 $p < 0.05$ on all 84 of them rather than on mean differences alone, and the
 EMBER margins turn out to have been understated rather than overstated. The one
 configuration where the quantum pipeline was ever competitive --- CIC binary ---
-cannot be significance-tested from what was logged, and we say so rather than
-quietly dropping it.
+cannot be significance-tested from what was logged.
 
 What is genuinely new is the mechanism. The fidelity kernel does not fail on CIC
 because CIC's features are hard: a classical RBF kernel on the identical

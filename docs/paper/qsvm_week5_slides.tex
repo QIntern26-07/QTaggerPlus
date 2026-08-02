@@ -59,8 +59,8 @@
 \note{
 \textbf{Open (20s).}
 Week 5 for the QSVM track. Seven days, six of them mine.\\
-Headline up front: three results this week \emph{change} conclusions we had
-already published --- they do not just add to them.\\
+Three results this week change conclusions already published; the rest close
+open items.\\
 I will go day by day.
 }
 
@@ -89,8 +89,8 @@ had been open for weeks.}
 Seven days. Day 32 is Elizabeth and Ge's --- I flag it so nobody reads its
 absence as a gap on my side.\\
 Bold rows are where a number or a claim moved. Days 30 and 31 are closures.\\
-Watch for Day 29 and Day 34: both make the classical--quantum gap
-\emph{stronger} than what we had reported.
+Day 29 and Day 34 both widen the classical--quantum gap relative to what was
+reported.
 }
 
 % ================================================================= setup
@@ -129,13 +129,13 @@ reaches $0.890$ accuracy in 3 of 5 folds while benign-class F1 is exactly
 $0.000$ --- $88.9\%$ of rows are malware and it labels everything malware.
 \end{frame}
 \note{
-\textbf{Setup (60s). Skip fast if the audience knows it.}
+\textbf{Setup (60s). Skip if the audience knows it.}
 One number matters here: \nc{}. It sets the classical feature count and the
 qubit budget \emph{simultaneously}. That is what makes this apples-to-apples.\\
 The quantum side runs first and writes its rows and folds to disk; the classical
 side replays them. Nobody picks their own split.\\
-The accuracy example is the one to land: 0.890 accuracy, benign F1 exactly zero.
-That is why every number today is macro-F1.
+Accuracy example: 0.890 accuracy, benign F1 exactly zero. Hence macro-F1
+throughout.
 }
 
 % ================================================================= day 29
@@ -164,20 +164,19 @@ S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
 \end{tabular}
 
 \raggedright
-\take{random forest beats SVM on \emph{every} binary cell. We had been
-comparing against a sub-optimal baseline.}
+\take{random forest beats SVM on \emph{every} binary cell --- the previous
+baseline was sub-optimal.}
 \end{frame}
 \note{
 \textbf{Day 29, part 1 (60s).}
 Motivation: we only ever ran SVM on EMBER, so every EMBER margin we published
 was QSVM-versus-SVM, not QSVM-versus-best.\\
 Point at the bold column: random forest wins all three binary rows.\\
-On 15-class, SVM does hold up at \nc{} 3 and 6 --- so those two margins stand.
-I am not overstating this.\\
+On 15-class SVM holds up at \nc{} 3 and 6 --- those two margins stand.\\
 Cost: 32 minutes for the whole grid, six foreground runs.
 }
 
-\begin{frame}{\daytag{29}The margins we published were understated}
+\begin{frame}{\daytag{29}Effect on the reported margins}
 \small
 \centering
 \begin{tabular}{@{}lccc@{}}
@@ -199,12 +198,12 @@ Four of six cells move. All four move the same way.
 On 15-class, SVM genuinely \emph{is} the strongest baseline at \nc{}~$\in\{3,6\}$
 --- those two margins stand unchanged.
 
-\take{every correction this week went \emph{against} the quantum pipeline. Our
-earlier numbers flattered it.}
+\take{every corrected cell moves against the quantum pipeline. None moves
+toward it.}
 \end{frame}
 \note{
-\textbf{Day 29, part 2 (45s). This is a correction --- say it plainly.}
-We under-reported the gap by up to 0.027 macro-F1.\\
+\textbf{Day 29, part 2 (45s).}
+The gap was under-reported by up to 0.027 macro-F1.\\
 Direction matters more than magnitude: the correction is uniformly against
 quantum. There is no cell where the new baseline helps the QSVM.\\
 If asked ``is this material?'' --- it does not change any conclusion, it makes
@@ -267,9 +266,9 @@ the sweeps.
 investigation --- only the bandwidth.}
 \end{frame}
 \note{
-\textbf{Day 30 (40s). Short slide --- do not linger.}
-Two separate pieces of work; only one was done. Say that explicitly so nobody
-reads the labelling report as results.\\
+\textbf{Day 30 (40s). Short slide.}
+Two separate pieces of work; only one was done --- the labelling report contains
+no results.\\
 Zero SOREL rows exist in our experiment log. I checked.\\
 The useful part is the right column: I ruled out disk and memory by measurement,
 so the next person does not re-investigate. It is purely download time.\\
@@ -307,13 +306,11 @@ measured foundation instead of an assumption.}
 \end{frame}
 \note{
 \textbf{Day 31, part 1 (45s).}
-Be honest about the framing: this was assigned in Week 2 and nobody ran it,
-including me, until now.\\
+Assigned in Week 2; not executed until now.\\
 The chart is the whole argument --- grey is what chance produces, blue is what
 we observed. Both far below chance.\\
-If someone asks why it matters: every quantum number in four weeks of reports
-sits on these 1000 rows. If the subsample were skewed, all of it would be
-suspect.
+Why it matters: every quantum number in four weeks of reports sits on these
+1000 rows.
 }
 
 \begin{frame}{\daytag{31}Feature geometry --- a dataset effect}
@@ -362,9 +359,8 @@ CTGAN run (blocked on Team B) \quad$\cdot$\quad
 evaluation-protocol finalisation (blocked on Team A)
 \end{frame}
 \note{
-\textbf{Day 32 (20s). Deliberately a fast slide.}
-Say it and move on. The only reason it exists is so the day sequence has no
-silent hole.\\
+\textbf{Day 32 (20s). Fast slide.}
+Present so the day sequence is complete.\\
 If someone asks about the greyed line: CTGAN is ready on my side --- the CLI
 takes any parquet --- it just needs the augmented dataset from Team B.
 }
@@ -385,7 +381,7 @@ fidelity kernel matches it on EMBER ($0.92\times$) and \textbf{collapses to
 $\mathbf{0.40\times}$ on CIC}.}
 \end{frame}
 \note{
-\textbf{Day 33 (70s). This is the slide of the week --- slow down.}
+\textbf{Day 33 (70s). Densest slide --- take it slowly.}
 The control is the whole design: same features, two kernels.\\
 Panel (a), read the orange bars first --- RBF is flat across datasets. So CIC's
 features do \emph{not} make a classical kernel concentrate.\\
@@ -413,7 +409,7 @@ mechanism and has never been tuned on CIC beyond its default --- but no sweep
 was run. A hypothesis with a named lever, not a measured fix.
 \end{block}
 
-\begin{block}{One tension we state rather than resolve}
+\begin{block}{Unresolved: alignment vs.\ SVM performance}
 Alignment says neither kernel carries label information on CIC, yet classical
 SVM reaches $0.16$ there. Alignment is a global unweighted average over all
 pairs; an SVM needs no such thing. It ranks dataset difficulty well and predicts
@@ -421,13 +417,11 @@ achievable SVM performance poorly.
 \end{block}
 \end{frame}
 \note{
-\textbf{Day 33, part 2 (50s). The credibility slide.}
-Three blocks, and the second and third are the ones that matter for trust.\\
-Do not let anyone leave thinking we fixed CIC. We named a mechanism. Bandwidth
-is untested on CIC.\\
-The third block is a genuine inconsistency in our own evidence and I would
-rather raise it than have a reviewer find it. Alignment is a blunt instrument;
-concentration is not, because it describes the matrix the SVM actually receives.
+\textbf{Day 33, part 2 (50s).}
+CIC is not fixed --- the mechanism is named, the lever is untested.\\
+Third block: alignment and SVM performance disagree on CIC. Alignment averages
+over all pairs; concentration describes the matrix the SVM receives, which is
+why the two can diverge.
 }
 
 % ================================================================= day 34
@@ -460,14 +454,13 @@ difference.}
 \end{frame}
 \note{
 \textbf{Day 34, part 1 (45s).}
-Lead with the admission: we had been asserting this for four weeks without a
-test.\\
+The claim ran for four weeks untested.\\
 Every point is left of the dashed line and above zero. 84 out of 84.\\
 Worst p-value is 0.024 --- so this is not marginal anywhere.\\
 Next slide is the caveat slide; do not stop here or it sounds too clean.
 }
 
-\begin{frame}{\daytag{34}Two things I will not overclaim}
+\begin{frame}{\daytag{34}Limits of the test}
 \small
 \begin{block}{Wilcoxon returned $0.0625$ for all 84 pairs --- that is not a null result}
 With 5 paired samples, $0.0625$ is the \emph{smallest attainable} two-sided
@@ -486,19 +479,16 @@ separating them. \emph{We did not reconstruct a grouping} --- that would invent
 a boundary the data does not record.
 \end{block}
 
-\take{the limitation is symmetric across frameworks. It is a logging gap, not a
-quantum result.}
+\take{symmetric across frameworks --- a logging gap, not a quantum result.}
 \end{frame}
 \note{
 \textbf{Day 34, part 2 (55s). Expect questions here.}
-The Wilcoxon point is the one people get wrong: 0.0625 looks like failure and is
-actually the floor. If we reported ``Wilcoxon found nothing'' that would be a
-serious misreading of our own data.\\
-CIC binary is the awkward one --- it is the only place quantum was ever
-competitive, and it is exactly the place we cannot test. I would rather say that
-than quietly drop the configuration.\\
-If pressed on why not group by timestamp: because the gaps are not a recorded
-boundary, they are a guess, and a guess here would fabricate a result.
+0.0625 reads as failure but is the floor at $n=5$; ``Wilcoxon found nothing''
+would misstate it.\\
+CIC binary is the only configuration where quantum was competitive, and the one
+we cannot test.\\
+If asked why not group by timestamp: the gaps are not a recorded boundary, so
+any grouping would be inferred rather than measured.
 }
 
 % ================================================================= day 35
@@ -509,8 +499,8 @@ boundary, they are a guess, and a guess here would fabricate a result.
         --- now with $p<0.05$ on all 84, not on mean differences alone.
   \item The EMBER margins were \textbf{understated}, not overstated. Every
         correction this week went against the quantum pipeline.
-  \item The one configuration where quantum was ever competitive --- CIC binary
-        --- cannot be tested from what was logged, and we say so.
+  \item CIC binary --- the one configuration where quantum was ever competitive
+        --- cannot be tested from what was logged.
 \end{itemize}
 
 \vspace{0.4em}
@@ -529,9 +519,8 @@ untested. \quad Move to 6 folds so a non-parametric test becomes usable.
 \note{
 \textbf{Day 35, close (60s).}
 Three bullets, then one idea.\\
-The idea is the last block: our most transferable finding is about the
-\emph{method}, not about either dataset. That is what would generalise to
-somebody else's data.\\
+The last block is the transferable finding: it is about the \emph{method}, not
+either dataset, so it carries to other data.\\
 Backlog is empty on the QSVM side --- 144 tests passing, reports and paper
 sections written.\\
 Two concrete next steps, both small. Bandwidth on CIC is the obvious follow-up

@@ -125,7 +125,7 @@ model resolve into two distinct sweeps per `n_components` with different
 configurations and no identifier separating them; grouping them by time-gap
 clustering would be inventing a boundary the data does not record. **The
 directional claim stands on the Week 3 report; it cannot be significance-tested
-from what was logged, and no attempt was made to manufacture a grouping.**
+from what was logged, and no grouping was reconstructed.**
 
 ## 6. McNemar — classical vs classical
 
