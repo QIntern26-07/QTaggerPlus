@@ -1,15 +1,14 @@
-% Four-page condensation of qsvm_week5_report.tex.
+% Four-page short form of the Week 5 QSVM-track progress report.
 %
-% Same results, same numbers, no new claims — this drops the extended
-% discussion, three of the six figures, and the methodological appendix on run
-% selection. Read the full version when the reasoning behind a number matters.
+% Standalone. Same results and numbers as the long form, with the extended
+% discussion and three of the six figures dropped.
 %
 % Build:  latexmk -pdf qsvm_week5_report_short.tex
 % Figures: uv run python scripts/make_report_figures.py
 
 \documentclass[10pt]{article}
 
-\usepackage[a4paper,margin=0.95in]{geometry}
+\usepackage[a4paper,margin=0.9in]{geometry}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -36,25 +35,43 @@
 \vspace{-1.8em}
 
 \noindent
-\textbf{Scope.} This is the Week~5 report for the QSVM track. It closes every
-item left open by the previous \emph{QSVM Track Progress Summary} (undated;
-it covers the EMBER sweeps, the angle-versus-IQP verdict and the SOREL labelling
-design), and revises three of its conclusions. Throughout, \nc{} abbreviates
-$n_{\mathrm{components}}$, the shared PCA dimensionality that fixes the classical
-feature count and the quantum qubit budget simultaneously. All macro-F1 values
-are held-out means over five outer folds; classical and quantum runs are scored
-on identical rows and folds. A longer version with the full reasoning is
-available as \texttt{qsvm\_week5\_report.tex}.
+\textbf{Scope.} This is the Week~5 report for the QSVM track. Three of its
+results revise conclusions this track had previously drawn rather than merely
+extending them.
+
+\textbf{Data.} Two malware datasets, each with a binary and a 15-class task.
+\emph{CIC-MalMem-2022}: memory dumps, 55 forensic features; \num{58596} balanced
+rows for the binary task, \num{29298} malware-only rows over 15 families
+($1.7\times$ imbalanced) for the 15-class one. \emph{EMBER 2018}: static PE
+features, 2381 dimensions, on a \num{18014}-row extract of the published test set
+($88.9\%$ malware); its 15-class task keeps the 15 largest families and
+downsamples each to the smallest, giving \num{14325} rows at 955 per family.
+
+\textbf{Protocol.} The quantum kernel costs $O(n^2)$ circuit evaluations, so
+every quantum result uses a stratified 1000-row subsample; that subsample and
+its five outer folds are persisted by the quantum runner and replayed by the
+classical one, so both are scored on identical rows and folds (800 train, 200
+held out). Both consume one shared pipeline --- variance filter, correlation
+filter at $0.95$, standardisation, PCA to \nc{} components --- fit on
+training-fold rows only. \nc{} abbreviates $n_{\mathrm{components}}$ and fixes
+the classical feature count and the quantum qubit budget at once, which is what
+makes the comparison like-for-like.
+
+\textbf{Metric.} Held-out macro-F1, meaned over five folds. Accuracy is not used
+as a headline: on EMBER binary at \nc{}~$=1$ the QSVM reaches $0.890$ accuracy
+in three of five folds while the benign class's F1 is exactly $0.000$ in those
+same folds, because $88.9\%$ of rows are malware and the model labels everything
+malware.
 
 \section{What this week changes}
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Open items from that summary.}
+\caption{Items this track had left open, and their status now.}
 \begin{tabular}{@{}p{0.44\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
 \toprule
-\textbf{Position in the earlier summary} & \textbf{Now} & \textbf{Basis} \\
+\textbf{Position entering this week} & \textbf{Now} & \textbf{Basis} \\
 \midrule
 Classical comparison is SVM only & Resolved & Four models, \nc{}~$\in\{1,3,6\}$, both tasks \\
 CIC 15-class collapse unidentified & Attributed & Kernel concentration vs.\ an RBF control \\
@@ -66,13 +83,10 @@ SOREL blocked & Closed & Resume conditions recorded \\
 \end{table}
 
 \vspace{-0.6em}
-\paragraph{Correction to the earlier summary, Table~1.} Its caption reads ``EMBER binary
-classification accuracy''; the values are macro-F1. The distinction matters
-here: at \nc{}~$=1$ the QSVM attains $0.890$ \emph{accuracy} in three of five
-folds while the benign class's F1 is exactly $0.000$ in those same folds,
-because $89\%$ of rows are malware and the model labels everything malware.
-Reported as accuracy, a classifier that never once identifies the class of
-interest reads as an $89\%$ success.
+\paragraph{A metric label to correct.} Figures reported for the EMBER binary
+task up to now have been labelled ``accuracy''; they are macro-F1. On that task
+the two differ by more than $0.4$, and only one of them reflects whether the
+benign class is ever found.
 
 \section{Four-model classical baseline on EMBER}
 
@@ -109,7 +123,7 @@ On binary, the quantum--classical gap grows from $+0.0727$ to $+0.0995$
 (\nc{}~$=1$), $+0.1222$ to $+0.1491$ (\nc{}~$=3$) and $+0.1587$ to $+0.1697$
 (\nc{}~$=6$). On the 15-class task SVM genuinely is the strongest baseline at
 \nc{}~$\in\{3,6\}$, so those two margins stand. Four of six cells move, all in
-the same direction: the earlier report flattered the quantum model.
+the same direction: the margins recorded up to now flattered the quantum model.
 
 \begin{figure}[htbp]
 \centering
@@ -188,7 +202,7 @@ exceeded fold-to-fold noise.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.56\textwidth]{figures/fig_significance.pdf}
+\includegraphics[width=0.50\textwidth]{figures/fig_significance.pdf}
 \caption{All 84 testable quantum--classical pairs. Every point lies left of
 $p=0.05$ and above zero; the worst $p$-value across all 84 is $0.0241$.}
 \end{figure}
