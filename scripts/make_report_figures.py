@@ -19,6 +19,7 @@ Run: uv run python scripts/make_report_figures.py
 """
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -30,10 +31,22 @@ import pandas as pd  # noqa: E402
 from loguru import logger  # noqa: E402
 
 CSV_DIR = Path("docs/reports/logs/w5_csv")
-OUT_DIR = Path("docs/paper/figures")
 
-# Column width of a standard article at 10pt is ~4.8in; these are sized to be
-# placed at \textwidth without rescaling, so fonts stay at their true size.
+# Two output targets. Both are 6.3 in wide -- that is the text width of the
+# article AND the full width of a 16:9 beamer slide -- so neither set is
+# rescaled on inclusion and the fonts land at exactly the size set here.
+# The slide set uses larger type because a slide's body text is larger: a 9 pt
+# axis label beside 11 pt body text reads as a footnote from the back of a room.
+# `half_h` grows with the type size: a taller axes is needed for a longer
+# rotated y-label to fit once the font is larger, or it gets clipped.
+TARGETS = {
+    "paper":  {"dir": Path("docs/paper/figures"),
+               "base": 9.0,  "half_h": 2.5},
+    "slides": {"dir": Path("docs/paper/figures_slides"),
+               "base": 11.5, "half_h": 3.0},
+}
+OUT_DIR = TARGETS["paper"]["dir"]
+
 FULL_W = 6.3
 HALF_H = 2.5
 
@@ -57,9 +70,10 @@ MARKER = {
     "qsvm-angle": "v", "qsvm-iqp": "P",
 }
 RANDOM_15 = 1.0 / 15.0
+BAR_FS = 6.5    # rebound per target in main()
 
 
-def setup_style() -> bool:
+def setup_style(base: float = 9.0) -> bool:
     have_lm = any("Latin Modern Roman" in f.name
                   for f in matplotlib.font_manager.fontManager.ttflist)
     matplotlib.rcParams.update({
@@ -68,19 +82,19 @@ def setup_style() -> bool:
         "font.serif": (["Latin Modern Roman"] if have_lm else []) + ["DejaVu Serif"],
         "mathtext.fontset": "cm",      # Computer Modern maths, incl. the minus
         "axes.formatter.use_mathtext": True,
-        "font.size": 9,
-        "axes.labelsize": 9,
-        "axes.titlesize": 9,
-        "legend.fontsize": 7.5,
-        "xtick.labelsize": 8,
-        "ytick.labelsize": 8,
+        "font.size": base,
+        "axes.labelsize": base,
+        "axes.titlesize": base,
+        "legend.fontsize": base - 1.5,
+        "xtick.labelsize": base - 1.0,
+        "ytick.labelsize": base - 1.0,
         "axes.linewidth": 0.6,
         "axes.spines.top": False,
         "axes.spines.right": False,
         "grid.linewidth": 0.4,
         "grid.alpha": 0.35,
-        "lines.linewidth": 1.2,
-        "lines.markersize": 4,
+        "lines.linewidth": 1.2 * base / 9.0,
+        "lines.markersize": 4 * base / 9.0,
         "legend.frameon": False,
         "pdf.fonttype": 42,
         "savefig.bbox": "tight",
@@ -107,7 +121,8 @@ def fig_capacity_scaling(master: pd.DataFrame) -> None:
     """Macro-F1 against qubit/feature budget, per dataset and task."""
     panels = [("cic-malmem", "multiclass"), ("ember-2018", "binary"),
               ("ember-2018", "multiclass")]
-    fig, axes = plt.subplots(1, 3, figsize=(FULL_W, 2.35), sharex=True)
+    fig, axes = plt.subplots(1, 3, figsize=(FULL_W, 2.35 * HALF_H / 2.5),
+                             sharex=True)
     for ax, (dataset, task) in zip(axes, panels):
         sub = master[(master["dataset"] == dataset) & (master["task"] == task)]
         for series in CLASSICAL + ["qsvm-angle", "qsvm-iqp"]:
@@ -123,9 +138,13 @@ def fig_capacity_scaling(master: pd.DataFrame) -> None:
             ax.axhline(RANDOM_15, color="0.35", lw=0.7, ls=":", zorder=0)
             # Right edge, below the line: the only region no series occupies in
             # either multiclass panel.
-            ax.text(6.0, RANDOM_15 - 0.018, "chance", fontsize=6.5,
+            ax.text(6.0, RANDOM_15 - 0.018, "chance", fontsize=BAR_FS,
                     va="top", ha="right", color="0.35")
-        ax.set_title(f"{NICE[dataset]}, {NICE[task]}")
+        # Short dataset name and a slightly smaller title: at the slide
+        # font size the full names collide across the three panels.
+        short = {"cic-malmem": "CIC-MalMem", "ember-2018": "EMBER"}[dataset]
+        ax.set_title(f"{short}, {NICE[task]}",
+                     fontsize=matplotlib.rcParams["axes.titlesize"] - 1.5)
         ax.set_xticks([1, 3, 6])
         ax.set_xlabel(_nc_label())
         ax.grid(True, axis="y")
@@ -157,7 +176,7 @@ def fig_kernel_diagnostics() -> None:
         vals = [k[(k.dataset == d) & (k.kernel == kern)]["offdiag_std"].iloc[0]
                 for d in order]
         bars = ax1.bar(x + (i - 0.5) * w, vals, w, label=label, color=col)
-        ax1.bar_label(bars, fmt="%.3f", fontsize=6.5, padding=1.5)
+        ax1.bar_label(bars, fmt="%.3f", fontsize=BAR_FS, padding=1.5)
     ax1.set_xticks(x, [names[d] for d in order])
     ax1.set_ylabel("Gram off-diagonal std")
     ax1.set_title("(a) Kernel concentration")
@@ -172,7 +191,7 @@ def fig_kernel_diagnostics() -> None:
         vals = [k[(k.dataset == d) & (k.kernel == kern)]
                 ["alignment_excess_over_baseline"].iloc[0] for d in order]
         bars = ax2.bar(x + (i - 0.5) * w, vals, w, label=label, color=col)
-        ax2.bar_label(bars, fmt="%+.4f", fontsize=6.5, padding=1.5)
+        ax2.bar_label(bars, fmt="%+.4f", fontsize=BAR_FS, padding=1.5)
     ax2.axhline(0, color="0.2", lw=0.7)
     ax2.set_xticks(x, [names[d] for d in order])
     ax2.set_ylabel("alignment above chance floor")
@@ -224,7 +243,7 @@ def fig_significance() -> None:
                    s=14, color=col, marker=mk, alpha=0.85, linewidths=0,
                    label=f"{NICE[dataset]}, {NICE[task]}")
     ax.axvline(0.05, color="0.2", lw=0.8, ls="--")
-    ax.text(0.043, 0.015, r"$p=0.05$", fontsize=7, color="0.2", ha="right")
+    ax.text(0.043, 0.015, r"$p=0.05$", fontsize=BAR_FS + 0.5, color="0.2", ha="right")
     ax.set_xscale("log")
     ax.set_xlim(2e-6, 0.13)
     ax.set_xticks([1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
@@ -277,8 +296,8 @@ def fig_representativeness() -> None:
                 label="expected under the null", color="#BBBBBB")
     b2 = ax.bar(x + w / 2, r["n_reject"], w, label="observed",
                 color="#0072B2")
-    ax.bar_label(b1, fmt="%.2f", fontsize=6.5, padding=1.5)
-    ax.bar_label(b2, fmt="%.0f", fontsize=6.5, padding=1.5)
+    ax.bar_label(b1, fmt="%.2f", fontsize=BAR_FS, padding=1.5)
+    ax.bar_label(b2, fmt="%.0f", fontsize=BAR_FS, padding=1.5)
     ax.set_xticks(x, [f"{names[d]}\n({int(n)} features)"
                       for d, n in zip(r["dataset"], r["n_features"])])
     ax.set_ylabel("KS rejections at $\\alpha=0.05$")
@@ -290,19 +309,31 @@ def fig_representativeness() -> None:
     plt.close(fig)
 
 
-def main() -> int:
-    have_lm = setup_style()
-    logger.info(f"Latin Modern available: {have_lm}")
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    master = load_master()
-    fig_capacity_scaling(master)
-    fig_kernel_diagnostics()
-    fig_concentration_sweep(master)
-    fig_significance()
-    fig_geometry()
-    fig_representativeness()
-    for p in sorted(OUT_DIR.glob("*.pdf")):
-        logger.info(f"  {p}  ({p.stat().st_size / 1024:.0f} KB)")
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--target", choices=sorted(TARGETS) + ["all"], default="all",
+                    help="'paper' for the report, 'slides' for the beamer deck.")
+    args = ap.parse_args(argv)
+    names = sorted(TARGETS) if args.target == "all" else [args.target]
+
+    global OUT_DIR, BAR_FS, HALF_H
+    for name in names:
+        spec = TARGETS[name]
+        OUT_DIR = spec["dir"]
+        BAR_FS = 6.5 * spec["base"] / 9.0
+        HALF_H = spec["half_h"]
+        have_lm = setup_style(spec["base"])
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        master = load_master()
+        fig_capacity_scaling(master)
+        fig_kernel_diagnostics()
+        fig_concentration_sweep(master)
+        fig_significance()
+        fig_geometry()
+        fig_representativeness()
+        logger.info(f"[{name}] base={spec['base']}pt  Latin Modern={have_lm}")
+        for p in sorted(OUT_DIR.glob("*.pdf")):
+            logger.info(f"    {p.name}  ({p.stat().st_size / 1024:.0f} KB)")
     return 0
 
 

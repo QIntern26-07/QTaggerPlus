@@ -1,0 +1,368 @@
+% Week 5 progress deck for the QSVM track. Standalone.
+%
+% Build:  latexmk -pdf qsvm_week5_slides.tex
+%
+% Figures come from figures_slides/, NOT figures/ — same data, larger type,
+% sized for a 16:9 slide. Generate with
+%   uv run python scripts/make_report_figures.py --target slides
+
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{microtype}
+
+% Without detect-weight, siunitx strips \bfseries inside S columns and the
+% "best model in bold" markup renders as ordinary text.
+\sisetup{detect-weight=true,detect-inline-weight=math}
+
+% Plain frames, no navigation furniture. The content is dense enough that
+% sidebars and headline bars would only steal width.
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{footline}{%
+  \hfill\usebeamerfont{footline}\color{gray!80}\small\insertframenumber\hspace{2em}\vspace{1.5ex}}
+\setbeamercolor{frametitle}{fg=black}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamerfont{block title}{size=\normalsize}
+
+\newcommand{\nc}{\ensuremath{n_{\mathrm{c}}}}
+\newcommand{\FIG}[1]{figures_slides/#1}
+\newcommand{\take}[1]{%
+  \vspace{0.4em}\footnotesize\textbf{\color{blue!55!black}Takeaway:} #1}
+
+\title{QSVM Track --- Week 5}
+\subtitle{Four-model baselines, kernel diagnostics, and the first significance tests}
+\date{2 August 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% ---------------------------------------------------------------- overview
+\begin{frame}{Week 5 in one slide}
+\small
+Three results change conclusions this track had already drawn. They do not
+merely add to them.
+\vspace{0.6em}
+
+\begin{tabular}{@{}p{0.40\textwidth}p{0.13\textwidth}p{0.42\textwidth}@{}}
+\toprule
+\textbf{Position entering the week} & \textbf{Now} & \textbf{Basis} \\
+\midrule
+Classical comparison is SVM only & Resolved & Four models, both tasks \\
+CIC 15-class collapse unexplained & \textbf{Attributed} & Kernel concentration vs.\ an RBF control \\
+No significance testing & Resolved & 84 paired tests, all $p<0.05$ \\
+Subsample fidelity assumed & Verified & KS rejections far below chance \\
+SOREL blocked & Closed & Resume conditions recorded \\
+\bottomrule
+\end{tabular}
+
+\take{the classical--quantum gap is real, larger than we had reported, and we
+now know \emph{why} it appears on one dataset and not the other.}
+\end{frame}
+
+% ---------------------------------------------------------------- data
+\begin{frame}{Data and protocol}
+\small
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{CIC-MalMem-2022} --- memory dumps, 55 forensic features
+\begin{itemize}\small
+  \item binary: \num{58596} rows, balanced
+  \item 15-class: \num{29298} malware rows, $1.7\times$ imbalanced
+\end{itemize}
+\vspace{0.5em}
+\textbf{EMBER 2018} --- static PE, 2381 features
+\begin{itemize}\small
+  \item binary: \num{18014} rows, $88.9\%$ malware
+  \item 15-class: \num{14325} rows, 955 per family (balanced)
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Fair-comparison protocol}
+\begin{itemize}\small
+  \item quantum kernel costs $O(n^2)$ circuit evaluations $\Rightarrow$
+        stratified 1000-row subsample
+  \item that subsample and its 5 outer folds are \emph{persisted and replayed}
+        by the classical runner
+  \item one shared pipeline: variance filter $\to$ correlation filter $\to$
+        standardise $\to$ PCA to \nc{}
+  \item \nc{} fixes classical feature count \emph{and} qubit budget at once
+  \item fit on training-fold rows only
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.4em}
+\footnotesize
+\textbf{Metric: macro-F1, not accuracy.} On EMBER binary at \nc{}~$=1$ the QSVM
+reaches $0.890$ accuracy in 3 of 5 folds while benign-class F1 is exactly
+$0.000$ --- $88.9\%$ of rows are malware and the model labels everything malware.
+\end{frame}
+
+% ---------------------------------------------------------------- baseline
+\begin{frame}{Result 1 --- the classical baseline was too weak}
+\small
+Every EMBER margin on record compared the QSVM against \emph{SVM alone}.
+Adding random forest, XGBoost and LightGBM:
+
+\vspace{0.4em}
+\centering
+\begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]
+S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
+\toprule
+& {Random forest} & {XGBoost} & {LightGBM} & {SVM} & {QSVM angle} & {QSVM IQP} \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Binary}}\\
+\nc{}~$=1$ & \bfseries 0.5582 & 0.5451 & 0.5093 & 0.5314 & 0.4532 & 0.4587 \\
+\nc{}~$=3$ & \bfseries 0.6575 & 0.6465 & 0.6434 & 0.6306 & 0.4924 & 0.5084 \\
+\nc{}~$=6$ & \bfseries 0.6835 & 0.6680 & 0.6593 & 0.6724 & 0.5138 & 0.5137 \\
+\addlinespace
+\multicolumn{7}{@{}l}{\emph{15-class}}\\
+\nc{}~$=1$ & \bfseries 0.5562 & 0.5313 & 0.5410 & 0.5294 & 0.1688 & 0.1541 \\
+\nc{}~$=3$ & 0.7194 & 0.7089 & 0.7035 & \bfseries 0.7389 & 0.3908 & 0.4797 \\
+\nc{}~$=6$ & 0.7903 & 0.7659 & 0.7709 & \bfseries 0.7930 & 0.4232 & 0.5195 \\
+\bottomrule
+\end{tabular}
+
+\raggedright
+\take{random forest beats SVM on \emph{every} binary cell --- so the margins we
+had published were measured against a sub-optimal baseline.}
+\end{frame}
+
+\begin{frame}{The margins we reported were understated}
+\small
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+& \nc{}~$=1$ & \nc{}~$=3$ & \nc{}~$=6$ \\
+\midrule
+gap vs.\ SVM (as previously reported) & $+0.0727$ & $+0.1222$ & $+0.1587$ \\
+gap vs.\ \emph{best} classical & $\mathbf{+0.0995}$ & $\mathbf{+0.1491}$ & $\mathbf{+0.1697}$ \\
+\midrule
+understated by & 0.0268 & 0.0269 & 0.0110 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.8em}
+\raggedright
+On the 15-class task SVM genuinely \emph{is} the strongest baseline at
+\nc{}~$\in\{3,6\}$, so those two margins stand unchanged.
+
+\vspace{0.3em}
+Four of six cells move. All four move the same way.
+
+\take{the correction goes \emph{against} the quantum pipeline everywhere. Our
+earlier numbers flattered it.}
+\end{frame}
+
+\begin{frame}{Capacity scaling --- the gap widens, it does not close}
+\centering
+\includegraphics[width=0.96\textwidth]{\FIG{fig_capacity_scaling.pdf}}
+
+\raggedright
+\take{on EMBER binary the QSVM gains $0.055$ macro-F1 from 1 to 6 components;
+the random forest gains $0.125$. More qubits are not buying the quantum model
+the headroom the classical model extracts from the same components.}
+\end{frame}
+
+% ---------------------------------------------------------------- collapse
+\begin{frame}{The open question we inherited}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\small
+On \textbf{CIC 15-class} the QSVM sits at the random baseline
+($0.056$--$0.079$ vs.\ chance $\approx 0.067$).
+
+\vspace{0.5em}
+On \textbf{EMBER 15-class} the same method reaches $0.42$--$0.52$.
+
+\vspace{0.5em}
+Already ruled out: class imbalance, qubit count.
+
+\vspace{0.5em}
+\textbf{Why?}
+\end{column}
+\begin{column}{0.44\textwidth}
+\small
+Two candidate explanations, and they are testable separately:
+\begin{enumerate}\small
+  \item the \textbf{features} are harder on CIC
+  \item the \textbf{kernel} fails on CIC
+\end{enumerate}
+\vspace{0.5em}
+A classical SVM extracts $0.108$--$0.165$ from \emph{the same projected
+features} where the QSVM extracts $0.056$--$0.079$.
+\end{column}
+\end{columns}
+
+\take{whatever CIC's features lack, the classical kernel finds something in
+them that the fidelity kernel does not. So (1) alone cannot be the answer.}
+\end{frame}
+
+\begin{frame}{Feature geometry --- explains the dataset, not the kernel}
+\centering
+\includegraphics[width=0.90\textwidth]{\FIG{fig_geometry.pdf}}
+
+\raggedright
+\footnotesize
+EMBER's families are $\approx 8\times$ more separable by Fisher ratio, up to
+$50\times$ on the worst-case family. CIC's silhouette is \textbf{negative at
+every} \nc{}: the average point lies closer to another family's centroid than
+its own. CIC's PCA nonetheless explains \emph{more} variance ($33$--$81\%$ vs.\
+$8$--$30\%$) --- its variance sits in directions that do not discriminate family.
+
+\take{this explains why \emph{every} method does badly on CIC 15-class. It
+cannot explain the QSVM-specific failure.}
+\end{frame}
+
+\begin{frame}{Kernel geometry --- the answer}
+\centering
+\includegraphics[width=0.90\textwidth]{\FIG{fig_kernel_diagnostics.pdf}}
+
+\raggedright
+\footnotesize
+Both panels: first outer training fold, \nc{}~$=6$, IQP encoding, 800 rows. The
+RBF control is built on the \textbf{identical} feature matrix --- that is what
+separates ``these features are hard'' from ``this kernel is bad''.
+
+\take{RBF produces the same spread on both datasets ($0.221$ vs.\ $0.218$). The
+fidelity kernel matches it on EMBER ($0.92\times$) and \textbf{collapses to
+$\mathbf{0.40\times}$ on CIC}.}
+\end{frame}
+
+\begin{frame}{What the kernel result does and does not support}
+\small
+\begin{block}{Supported}
+The failure on CIC is a property of \textbf{the kernel}, not of the dataset.
+A classical kernel on identical features does not concentrate; the quantum one
+does. The Gram approaches a scaled identity --- every pair looks equally
+similar --- and an SVM given that has nothing to separate on. That is what a
+macro-F1 pinned to chance looks like from the inside.
+\end{block}
+
+\begin{block}{Not supported}
+That tuning \texttt{bandwidth} would repair it. Bandwidth is the identified
+mechanism and has never been tuned on CIC beyond its default --- but no sweep
+was run. This is a hypothesis with a named lever, not a measured fix.
+\end{block}
+
+\begin{block}{One tension we state rather than resolve}
+Alignment says neither kernel's Gram carries label information on CIC, yet a
+classical SVM reaches $0.16$ there. Alignment is a global unweighted average
+over all pairs; an SVM needs no such thing. It ranks dataset difficulty well
+and predicts achievable SVM performance poorly.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------------- significance
+\begin{frame}{Result 3 --- the first significance tests}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\centering
+\includegraphics[width=\textwidth]{\FIG{fig_significance.pdf}}
+\end{column}
+\begin{column}{0.44\textwidth}
+\small
+Specified in Week 1. Built, unit-tested, and \textbf{never run} until now.
+
+\vspace{0.6em}
+Four weeks of ``QSVM loses to classical'' rested on differences in mean
+macro-F1, with no test that any gap exceeded fold-to-fold noise.
+
+\vspace{0.6em}
+\textbf{All 84 testable pairs} favour the classical model, and all 84 reach
+$p<0.05$ on the paired $t$-test.
+
+\vspace{0.4em}
+Worst $p$-value across every pair: $\mathbf{0.0241}$.
+\end{column}
+\end{columns}
+
+\take{the headline claim now has evidence behind it, not an unexamined mean
+difference.}
+\end{frame}
+
+\begin{frame}{Two things we will not overclaim}
+\small
+\begin{block}{Wilcoxon returned $0.0625$ for all 84 pairs --- that is not a null result}
+With 5 paired samples, $0.0625$ is the \emph{smallest attainable} two-sided
+$p$-value. The test is mathematically incapable of reaching $0.05$ at this fold
+count, whatever the effect size. All 84 hitting the floor means every pair
+achieved the most extreme rank configuration available.
+\emph{Fix:} 6 folds would put $0.03125$ in reach --- not a different test.
+\end{block}
+
+\begin{block}{All CIC binary comparisons are untestable}
+Every CIC binary run --- classical \textbf{and} quantum --- predates
+parent/child run tracking and carries no recoverable sweep boundary. Raw
+records show the QSVM at $0.92$--$1.00$, consistent with the earlier ``ties on
+binary'' reading, but they resolve into two distinct sweeps per \nc{} with no
+identifier separating them.
+\emph{We did not reconstruct a grouping.} Doing so would invent a boundary the
+data does not record. The limitation is symmetric across frameworks.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------------- closures
+\begin{frame}{Also closed this week}
+\small
+\begin{block}{Subsample representativeness --- specified in Week 2, never executed}
+Every quantum result uses a 1000-row subsample. Read against its null
+expectation --- a faithful subsample still produces
+$\approx \alpha \cdot n_{\mathrm{features}}$ rejections by chance --- CIC rejects
+\textbf{nothing} of 55 features where $\approx 2.75$ were expected; EMBER rejects
+\textbf{one} of 2381 where $\approx 119$ were. Class-proportion drift $< 0.001$.
+\emph{Four weeks of results now rest on a measured foundation.}
+\end{block}
+
+\begin{block}{SOREL-20M --- closed, not deferred}
+The labelling scheme was designed and validated over 19.7M rows and remains
+delivered work; the feature store was never fetched and \textbf{no sweep was
+ever run}. The two are independent --- the labelling work is not partial credit
+for the sweeps. Neither disk (\SI{227}{\gibi\byte} free vs.\
+\SI{71.6}{\gibi\byte}) nor memory is the blocker; it is the fixed
+\SI{71.6}{\gibi\byte} transfer, because the store offers no key-level remote
+access.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------------- summary
+\begin{frame}{Summary}
+\small
+\begin{itemize}
+  \item Classical models beat the QSVM on \textbf{every} testable configuration
+        --- now with $p<0.05$ on all 84, not on mean differences alone.
+  \item The EMBER margins were \textbf{understated}, not overstated. Every
+        correction this week went against the quantum pipeline.
+  \item The one configuration where the quantum pipeline was ever competitive
+        --- CIC binary --- cannot be significance-tested from what was logged,
+        and we say so rather than dropping it quietly.
+\end{itemize}
+
+\vspace{0.5em}
+\begin{block}{The transferable result}
+The fidelity kernel does not fail on CIC because CIC's features are hard --- a
+classical RBF kernel on the identical features does not concentrate. It fails
+because \textbf{the fidelity kernel collapses to $\mathbf{0.40\times}$ the
+classical kernel's spread} on that data. That is a statement about the method,
+not about the dataset.
+\end{block}
+
+\vspace{0.3em}
+\textbf{Next:} tune \texttt{bandwidth} on CIC --- the named mechanism, still
+untested; move to 6 folds so a non-parametric test becomes usable.
+\end{frame}
+
+\end{document}
