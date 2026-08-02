@@ -325,6 +325,12 @@ CLAUDE.md
 GEMINI.md
 .mcp.json
 
+# Presentation decks and speaker scripts stay local -- personal presenting
+# aids, revised up to the moment they are given. Reports and their figures in
+# docs/paper/figures/ ARE committed; only the deck itself is not.
+docs/paper/*slides*.tex
+docs/paper/*slides*.pdf
+
 # LaTeX build artifacts. The .tex source and the built .pdf are both tracked --
 # the PDF because reviewers should not need a TeX install to read the report.
 *.aux
