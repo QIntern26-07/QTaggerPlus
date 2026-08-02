@@ -42,6 +42,37 @@ def _sweep_encoding(parent_row, child_rows) -> str | None:
     return encodings[0] if len(encodings) == 1 else "joint"
 
 
+def clean_sweep_folds(df: pd.DataFrame, expected_folds: int = 5,
+                      metric: str = "metrics.f1_macro") -> pd.DataFrame:
+    """Every fold row that belongs to a trustworthy sweep.
+
+    A sweep is trustworthy when its parent is FINISHED and has exactly
+    `expected_folds` children. Shared by `fold_scores` and by
+    `scripts/export_week5_csv.py` so the CSVs and the significance tests can
+    never disagree about which runs count.
+    """
+    _require_columns(df, metric)
+    parents = df.set_index("run_id")
+    folds = df[df["parent_run_id"].notna() & df[metric].notna()].copy()
+    folds["parent_status"] = folds["parent_run_id"].map(parents["status"])
+    sizes = folds.groupby("parent_run_id").size()
+    keep = set(sizes[sizes == expected_folds].index) & set(
+        folds.loc[folds["parent_status"] == "FINISHED", "parent_run_id"]
+    )
+    return folds[folds["parent_run_id"].isin(keep)]
+
+
+def _require_columns(df: pd.DataFrame, metric: str) -> None:
+    required = {"run_id", "parent_run_id", "status", "start_time", metric}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"export is missing {sorted(missing)}; re-run "
+            "scripts/export_mlflow_runs.py (it used to drop run_id and "
+            "tags.mlflow.parentRunId, which makes per-sweep grouping impossible)"
+        )
+
+
 def fold_scores(df: pd.DataFrame, dataset: str, task: str, n_components,
                 model: str, encoding: str | None = None,
                 expected_folds: int = 5,
@@ -53,32 +84,20 @@ def fold_scores(df: pd.DataFrame, dataset: str, task: str, n_components,
     exception means "nothing trustworthy here" rather than "this cell was run
     more than once".
     """
-    required = {"run_id", "parent_run_id", "status", "start_time", metric}
-    missing = required - set(df.columns)
-    if missing:
-        raise ValueError(
-            f"export is missing {sorted(missing)}; re-run "
-            "scripts/export_mlflow_runs.py (it used to drop run_id and "
-            "tags.mlflow.parentRunId, which makes per-sweep grouping impossible)"
-        )
-
+    # Validate before touching `run_id` — a pre-parent_run_id export must fail
+    # with the actionable "re-run the exporter" message, not a raw KeyError.
+    clean = clean_sweep_folds(df, expected_folds=expected_folds, metric=metric)
     parents = df.set_index("run_id")
-    children = df[
-        df["parent_run_id"].notna()
-        & df[metric].notna()
-        & (df["params.dataset"] == dataset)
-        & (df["params.task"] == task)
-        & (df["params.n_components"].astype(str) == str(n_components))
-        & (df["params.model"] == model)
+    children = clean[
+        (clean["params.dataset"] == dataset)
+        & (clean["params.task"] == task)
+        & (clean["params.n_components"].astype(str) == str(n_components))
+        & (clean["params.model"] == model)
     ]
 
     candidates = []
     for parent_id, group in children.groupby("parent_run_id"):
-        if parent_id not in parents.index:
-            continue
         parent = parents.loc[parent_id]
-        if parent["status"] != "FINISHED" or len(group) != expected_folds:
-            continue
         if encoding is not None and _sweep_encoding(parent, group) != encoding:
             continue
         candidates.append((parent["start_time"], parent_id, group))

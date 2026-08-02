@@ -15,10 +15,17 @@ week were wrong and are retracted in place — §7 lists them.
 
 **Reproduction state at close:**
 
-- Test suite: **143 passed** (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest`).
+- Test suite: **144 passed** (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest`).
   The plugin-autoload flag is required because a system-wide ROS 2
   `launch_testing` plugin breaks bare `pytest`.
-- `results/mlflow_runs.csv`: **976 runs × 73 columns**.
+- `results/mlflow_runs.csv`: **976 runs × 73 columns** — the raw per-run metrics.
+- `docs/reports/logs/w5_csv/`: seven CSVs holding every **derived** result this
+  week produced — master aggregates (123 clean sweeps, 75 latest-per-cell),
+  t-test/Wilcoxon (84 rows), the cells that could not be tested (15 rows),
+  McNemar (12 rows), subsample representativeness, feature geometry, kernel
+  diagnostics. Regenerate with `uv run python scripts/export_week5_csv.py`.
+  They live under `docs/` because `results/*/*` is gitignored and only
+  `mlflow_runs.csv` is exempt.
 - Datasets present: CIC-MalMem-2022, EMBER 2018. Absent: SOREL-20M (§4).
 
 ## 1. Status at a glance

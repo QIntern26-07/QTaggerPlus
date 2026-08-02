@@ -21,6 +21,8 @@ from pathlib import Path
 import pandas as pd
 from loguru import logger
 
+from common.significance import clean_sweep_folds
+
 OUT_DIR = Path("docs/reports/logs/w5_csv")
 MLFLOW_CSV = "results/mlflow_runs.csv"
 DAY31 = "docs/reports/logs/w5_day31/geometry.json"
@@ -30,27 +32,16 @@ DAY34_SIG = "docs/reports/logs/w5_day34/significance.json"
 DAY34_MCN = "docs/reports/logs/w5_day34/mcnemar_classical.json"
 
 
-def clean_sweeps(df: pd.DataFrame, metric: str = "metrics.f1_macro") -> pd.DataFrame:
-    """Fold rows belonging to a FINISHED parent with exactly 5 children.
+def master_tables(df: pd.DataFrame) -> pd.DataFrame:
+    """One row per clean sweep: the aggregate every report table is built from.
 
-    Same rule as `common.significance.fold_scores` — see that module for why
-    cell params do not identify a CV run.
+    Sweep selection comes from `common.significance.clean_sweep_folds`, the same
+    function `fold_scores` uses, so these CSVs and the significance tests can
+    never disagree about which runs count.
     """
     parents = df.set_index("run_id")
-    folds = df[df["parent_run_id"].notna() & df[metric].notna()].copy()
-    folds["parent_status"] = folds["parent_run_id"].map(parents["status"])
-    sizes = folds.groupby("parent_run_id").size()
-    keep = set(sizes[sizes == 5].index) & set(
-        folds.loc[folds["parent_status"] == "FINISHED", "parent_run_id"]
-    )
-    return folds[folds["parent_run_id"].isin(keep)]
-
-
-def master_tables(df: pd.DataFrame) -> pd.DataFrame:
-    """One row per clean sweep: the aggregate every report table is built from."""
-    parents = df.set_index("run_id")
     rows = []
-    for parent_id, group in clean_sweeps(df).groupby("parent_run_id"):
+    for parent_id, group in clean_sweep_folds(df).groupby("parent_run_id"):
         parent = parents.loc[parent_id]
         child_encodings = sorted(set(group["params.encoding"].dropna()))
         tag = parent.get("params.encoding")

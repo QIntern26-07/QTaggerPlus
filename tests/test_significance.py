@@ -100,3 +100,15 @@ def test_raises_when_the_export_predates_the_parent_run_id_column():
     df = pd.DataFrame([{"params.dataset": "cic-malmem", "metrics.f1_macro": 0.1}])
     with pytest.raises(ValueError, match="re-run"):
         significance.fold_scores(df, "cic-malmem", "binary", 3, "svm")
+
+
+def test_clean_sweep_folds_is_the_shared_selection_rule():
+    # scripts/export_week5_csv.py builds the master-table CSVs from this same
+    # function. Two implementations of the rule would let the CSVs and the
+    # significance tests drift apart silently.
+    df = pd.DataFrame(_sweep("ok", 1, [0.1, 0.2, 0.3])
+                      + _sweep("killed", 5, [0.9, 0.9], status="RUNNING")
+                      + _sweep("short", 7, [0.4, 0.5]))
+    clean = significance.clean_sweep_folds(df, expected_folds=3)
+    assert set(clean["parent_run_id"]) == {"ok"}
+    assert len(clean) == 3
