@@ -325,5 +325,14 @@ CLAUDE.md
 GEMINI.md
 .mcp.json
 
+# LaTeX build artifacts. The .tex source and the built .pdf are both tracked --
+# the PDF because reviewers should not need a TeX install to read the report.
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+docs/paper/*.log
+
 # Scratch working notes
 temp/
