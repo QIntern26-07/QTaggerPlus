@@ -1,10 +1,10 @@
-% Four-page condensation of qsvm_week5_addendum.tex.
+% Four-page condensation of qsvm_week5_report.tex.
 %
 % Same results, same numbers, no new claims — this drops the extended
-% discussion, two of the six figures, and the methodological appendix on run
+% discussion, three of the six figures, and the methodological appendix on run
 % selection. Read the full version when the reasoning behind a number matters.
 %
-% Build:  latexmk -pdf qsvm_week5_addendum_short.tex
+% Build:  latexmk -pdf qsvm_week5_report_short.tex
 % Figures: uv run python scripts/make_report_figures.py
 
 \documentclass[10pt]{article}
@@ -27,7 +27,7 @@
 \newcommand{\nc}{\ensuremath{n_{\mathrm{c}}}}
 \newcommand{\best}[1]{\textbf{#1}}
 
-\title{\vspace{-2.2em}QSVM Track: Week 5 Addendum\\[0.2em]
+\title{\vspace{-2.2em}QSVM Track: Week 5 Progress Summary\\[0.2em]
 \large Short form}
 \date{2 August 2026}
 
@@ -36,23 +36,25 @@
 \vspace{-1.8em}
 
 \noindent
-\textbf{Scope.} This supplements the Week~4 \emph{QSVM Track Progress Summary}
-and closes every open item it listed. Throughout, \nc{} abbreviates
+\textbf{Scope.} This is the Week~5 report for the QSVM track. It closes every
+item left open by the previous \emph{QSVM Track Progress Summary} (undated;
+it covers the EMBER sweeps, the angle-versus-IQP verdict and the SOREL labelling
+design), and revises three of its conclusions. Throughout, \nc{} abbreviates
 $n_{\mathrm{components}}$, the shared PCA dimensionality that fixes the classical
 feature count and the quantum qubit budget simultaneously. All macro-F1 values
 are held-out means over five outer folds; classical and quantum runs are scored
 on identical rows and folds. A longer version with the full reasoning is
-available as \texttt{qsvm\_week5\_addendum.tex}.
+available as \texttt{qsvm\_week5\_report.tex}.
 
-\section{What changed}
+\section{What this week changes}
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Open items from the Week~4 summary.}
+\caption{Open items from that summary.}
 \begin{tabular}{@{}p{0.44\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
 \toprule
-\textbf{Week~4 position} & \textbf{Now} & \textbf{Basis} \\
+\textbf{Position in the earlier summary} & \textbf{Now} & \textbf{Basis} \\
 \midrule
 Classical comparison is SVM only & Resolved & Four models, \nc{}~$\in\{1,3,6\}$, both tasks \\
 CIC 15-class collapse unidentified & Attributed & Kernel concentration vs.\ an RBF control \\
@@ -64,7 +66,7 @@ SOREL blocked & Closed & Resume conditions recorded \\
 \end{table}
 
 \vspace{-0.6em}
-\paragraph{Correction to Week~4, Table~1.} Its caption reads ``EMBER binary
+\paragraph{Correction to the earlier summary, Table~1.} Its caption reads ``EMBER binary
 classification accuracy''; the values are macro-F1. The distinction matters
 here: at \nc{}~$=1$ the QSVM attains $0.890$ \emph{accuracy} in three of five
 folds while the benign class's F1 is exactly $0.000$ in those same folds,
@@ -120,7 +122,7 @@ forest gains $0.125$. CIC binary is absent; see \S\ref{sec:sig}.}
 
 \section{Why CIC 15-class collapses}
 
-Week~4 ruled out class imbalance and qubit count and closed with ``the actual
+It ruled out class imbalance and qubit count and closed with ``the actual
 cause is unidentified''. Two measurements separate a dataset effect from a
 kernel effect.
 
