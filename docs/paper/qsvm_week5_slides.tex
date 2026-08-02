@@ -1,6 +1,10 @@
 % Week 5 progress deck for the QSVM track. Standalone.
+% Organised by day (29 -> 35) so it tracks the week plan while presenting.
 %
-% Build:  latexmk -pdf qsvm_week5_slides.tex
+% Slides only:
+%   latexmk -pdf qsvm_week5_slides.tex
+% Slides with speaker notes on every page (for a second screen or printout):
+%   pdflatex -jobname=qsvm_week5_slides_notes "\def\WITHNOTES{1}\input{qsvm_week5_slides}"
 %
 % Figures come from figures_slides/, NOT figures/ — same data, larger type,
 % sized for a 16:9 slide. Generate with
@@ -21,6 +25,8 @@
 % "best model in bold" markup renders as ordinary text.
 \sisetup{detect-weight=true,detect-inline-weight=math}
 
+\ifdefined\WITHNOTES\setbeameroption{show notes}\fi
+
 % Plain frames, no navigation furniture. The content is dense enough that
 % sidebars and headline bars would only steal width.
 \usetheme{default}
@@ -33,14 +39,16 @@
 \setbeamerfont{frametitle}{size=\large,series=\bfseries}
 \setbeamercolor{structure}{fg=blue!55!black}
 \setbeamerfont{block title}{size=\normalsize}
+\setbeamerfont{note page}{size=\small}
 
 \newcommand{\nc}{\ensuremath{n_{\mathrm{c}}}}
 \newcommand{\FIG}[1]{figures_slides/#1}
 \newcommand{\take}[1]{%
   \vspace{0.4em}\footnotesize\textbf{\color{blue!55!black}Takeaway:} #1}
+\newcommand{\daytag}[1]{{\color{blue!55!black}Day #1} --- }
 
 \title{QSVM Track --- Week 5}
-\subtitle{Four-model baselines, kernel diagnostics, and the first significance tests}
+\subtitle{Day-by-day: baselines, diagnostics, and the first significance tests}
 \date{2 August 2026}
 
 \begin{document}
@@ -48,32 +56,45 @@
 \begin{frame}[plain]
   \titlepage
 \end{frame}
+\note{
+\textbf{Open (20s).}
+Week 5 for the QSVM track. Seven days, six of them mine.\\
+Headline up front: three results this week \emph{change} conclusions we had
+already published --- they do not just add to them.\\
+I will go day by day.
+}
 
-% ---------------------------------------------------------------- overview
-\begin{frame}{Week 5 in one slide}
+% ================================================================= agenda
+\begin{frame}{The week at a glance}
 \small
-Three results change conclusions this track had already drawn. They do not
-merely add to them.
-\vspace{0.6em}
-
-\begin{tabular}{@{}p{0.40\textwidth}p{0.13\textwidth}p{0.42\textwidth}@{}}
+\begin{tabular}{@{}llp{0.46\textwidth}@{}}
 \toprule
-\textbf{Position entering the week} & \textbf{Now} & \textbf{Basis} \\
+\textbf{Day} & \textbf{Deliverable} & \textbf{Outcome} \\
 \midrule
-Classical comparison is SVM only & Resolved & Four models, both tasks \\
-CIC 15-class collapse unexplained & \textbf{Attributed} & Kernel concentration vs.\ an RBF control \\
-No significance testing & Resolved & 84 paired tests, all $p<0.05$ \\
-Subsample fidelity assumed & Verified & KS rejections far below chance \\
-SOREL blocked & Closed & Resume conditions recorded \\
+29 & EMBER four-model baseline & \textbf{Our margins were understated} \\
+30 & SOREL-20M close-out & Closed, not deferred \\
+31 & Separability + subsample fidelity & Subsamples verified; dataset effect isolated \\
+32 & Quantum feature extraction & \emph{Not my scope} (Elizabeth / Ge) \\
+33 & Kernel diagnostics & \textbf{CIC collapse mechanism identified} \\
+34 & Significance tests & \textbf{84/84 pairs at $p<0.05$} \\
+35 & Consolidation + paper draft & Backlog empty \\
 \bottomrule
 \end{tabular}
 
-\take{the classical--quantum gap is real, larger than we had reported, and we
-now know \emph{why} it appears on one dataset and not the other.}
+\take{three days changed a conclusion. The other three closed something that
+had been open for weeks.}
 \end{frame}
+\note{
+\textbf{Agenda (40s).}
+Seven days. Day 32 is Elizabeth and Ge's --- I flag it so nobody reads its
+absence as a gap on my side.\\
+Bold rows are where a number or a claim moved. Days 30 and 31 are closures.\\
+Watch for Day 29 and Day 34: both make the classical--quantum gap
+\emph{stronger} than what we had reported.
+}
 
-% ---------------------------------------------------------------- data
-\begin{frame}{Data and protocol}
+% ================================================================= setup
+\begin{frame}{Setup --- what makes the comparison fair}
 \small
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
@@ -82,42 +103,48 @@ now know \emph{why} it appears on one dataset and not the other.}
   \item binary: \num{58596} rows, balanced
   \item 15-class: \num{29298} malware rows, $1.7\times$ imbalanced
 \end{itemize}
-\vspace{0.5em}
+\vspace{0.4em}
 \textbf{EMBER 2018} --- static PE, 2381 features
 \begin{itemize}\small
   \item binary: \num{18014} rows, $88.9\%$ malware
-  \item 15-class: \num{14325} rows, 955 per family (balanced)
+  \item 15-class: \num{14325} rows, 955 per family
 \end{itemize}
 \end{column}
 \begin{column}{0.48\textwidth}
-\textbf{Fair-comparison protocol}
+\textbf{Protocol}
 \begin{itemize}\small
-  \item quantum kernel costs $O(n^2)$ circuit evaluations $\Rightarrow$
-        stratified 1000-row subsample
-  \item that subsample and its 5 outer folds are \emph{persisted and replayed}
-        by the classical runner
-  \item one shared pipeline: variance filter $\to$ correlation filter $\to$
-        standardise $\to$ PCA to \nc{}
+  \item quantum kernel is $O(n^2)$ $\Rightarrow$ stratified 1000-row subsample
+  \item subsample + 5 folds \emph{persisted, then replayed} by the classical
+        runner --- identical rows, identical folds
+  \item one shared pipeline ending in PCA to \nc{}
   \item \nc{} fixes classical feature count \emph{and} qubit budget at once
-  \item fit on training-fold rows only
 \end{itemize}
 \end{column}
 \end{columns}
 
-\vspace{0.4em}
+\vspace{0.3em}
 \footnotesize
-\textbf{Metric: macro-F1, not accuracy.} On EMBER binary at \nc{}~$=1$ the QSVM
+\textbf{Metric is macro-F1, not accuracy.} EMBER binary at \nc{}~$=1$: the QSVM
 reaches $0.890$ accuracy in 3 of 5 folds while benign-class F1 is exactly
-$0.000$ --- $88.9\%$ of rows are malware and the model labels everything malware.
+$0.000$ --- $88.9\%$ of rows are malware and it labels everything malware.
 \end{frame}
+\note{
+\textbf{Setup (60s). Skip fast if the audience knows it.}
+One number matters here: \nc{}. It sets the classical feature count and the
+qubit budget \emph{simultaneously}. That is what makes this apples-to-apples.\\
+The quantum side runs first and writes its rows and folds to disk; the classical
+side replays them. Nobody picks their own split.\\
+The accuracy example is the one to land: 0.890 accuracy, benign F1 exactly zero.
+That is why every number today is macro-F1.
+}
 
-% ---------------------------------------------------------------- baseline
-\begin{frame}{Result 1 --- the classical baseline was too weak}
+% ================================================================= day 29
+\begin{frame}{\daytag{29}EMBER four-model classical baseline}
 \small
 Every EMBER margin on record compared the QSVM against \emph{SVM alone}.
-Adding random forest, XGBoost and LightGBM:
+Added random forest, XGBoost, LightGBM:
 
-\vspace{0.4em}
+\vspace{0.3em}
 \centering
 \begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]
 S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
@@ -137,11 +164,20 @@ S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
 \end{tabular}
 
 \raggedright
-\take{random forest beats SVM on \emph{every} binary cell --- so the margins we
-had published were measured against a sub-optimal baseline.}
+\take{random forest beats SVM on \emph{every} binary cell. We had been
+comparing against a sub-optimal baseline.}
 \end{frame}
+\note{
+\textbf{Day 29, part 1 (60s).}
+Motivation: we only ever ran SVM on EMBER, so every EMBER margin we published
+was QSVM-versus-SVM, not QSVM-versus-best.\\
+Point at the bold column: random forest wins all three binary rows.\\
+On 15-class, SVM does hold up at \nc{} 3 and 6 --- so those two margins stand.
+I am not overstating this.\\
+Cost: 32 minutes for the whole grid, six foreground runs.
+}
 
-\begin{frame}{The margins we reported were understated}
+\begin{frame}{\daytag{29}The margins we published were understated}
 \small
 \centering
 \begin{tabular}{@{}lccc@{}}
@@ -155,119 +191,247 @@ understated by & 0.0268 & 0.0269 & 0.0110 \\
 \bottomrule
 \end{tabular}
 
-\vspace{0.8em}
+\vspace{0.7em}
 \raggedright
-On the 15-class task SVM genuinely \emph{is} the strongest baseline at
-\nc{}~$\in\{3,6\}$, so those two margins stand unchanged.
-
-\vspace{0.3em}
 Four of six cells move. All four move the same way.
 
-\take{the correction goes \emph{against} the quantum pipeline everywhere. Our
+\vspace{0.3em}
+On 15-class, SVM genuinely \emph{is} the strongest baseline at \nc{}~$\in\{3,6\}$
+--- those two margins stand unchanged.
+
+\take{every correction this week went \emph{against} the quantum pipeline. Our
 earlier numbers flattered it.}
 \end{frame}
+\note{
+\textbf{Day 29, part 2 (45s). This is a correction --- say it plainly.}
+We under-reported the gap by up to 0.027 macro-F1.\\
+Direction matters more than magnitude: the correction is uniformly against
+quantum. There is no cell where the new baseline helps the QSVM.\\
+If asked ``is this material?'' --- it does not change any conclusion, it makes
+the existing one stronger.
+}
 
-\begin{frame}{Capacity scaling --- the gap widens, it does not close}
+\begin{frame}{\daytag{29}Capacity scaling --- the gap widens}
 \centering
 \includegraphics[width=0.96\textwidth]{\FIG{fig_capacity_scaling.pdf}}
 
 \raggedright
-\take{on EMBER binary the QSVM gains $0.055$ macro-F1 from 1 to 6 components;
-the random forest gains $0.125$. More qubits are not buying the quantum model
-the headroom the classical model extracts from the same components.}
+\take{EMBER binary: the QSVM gains $0.055$ macro-F1 from 1 to 6 components; the
+random forest gains $0.125$. More qubits are not buying the quantum model the
+headroom the classical model gets from the same components.}
 \end{frame}
+\note{
+\textbf{Day 29, part 3 (40s). One gesture: the two dashed lines stay flat.}
+Solid = classical, dashed = quantum.\\
+The important reading is the \emph{slope}, not the offset. Both improve with
+more components, but the classical slope is more than twice the quantum one on
+EMBER binary.\\
+So ``more qubits will fix it'' is not supported by this curve.\\
+CIC binary is missing from this chart --- I explain why on the Day 34 slide.
+}
 
-% ---------------------------------------------------------------- collapse
-\begin{frame}{The open question we inherited}
+% ================================================================= day 30
+\begin{frame}{\daytag{30}SOREL-20M --- closed, not deferred}
+\small
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
-\small
-On \textbf{CIC 15-class} the QSVM sits at the random baseline
-($0.056$--$0.079$ vs.\ chance $\approx 0.067$).
-
-\vspace{0.5em}
-On \textbf{EMBER 15-class} the same method reaches $0.42$--$0.52$.
-
-\vspace{0.5em}
-Already ruled out: class imbalance, qubit count.
-
-\vspace{0.5em}
-\textbf{Why?}
+\begin{column}{0.47\textwidth}
+\textbf{Delivered}
+\begin{itemize}\small
+  \item labelling scheme designed and validated over 19.7M rows
+\end{itemize}
+\vspace{0.4em}
+\textbf{Never started}
+\begin{itemize}\small
+  \item feature-store download
+  \item any sweep, classical or quantum
+\end{itemize}
+\vspace{0.3em}
+The two are \emph{independent}. The labelling work is not partial credit for
+the sweeps.
 \end{column}
-\begin{column}{0.44\textwidth}
-\small
-Two candidate explanations, and they are testable separately:
-\begin{enumerate}\small
-  \item the \textbf{features} are harder on CIC
-  \item the \textbf{kernel} fails on CIC
-\end{enumerate}
-\vspace{0.5em}
-A classical SVM extracts $0.108$--$0.165$ from \emph{the same projected
-features} where the QSVM extracts $0.056$--$0.079$.
+\begin{column}{0.49\textwidth}
+\textbf{What is actually blocking it}
+\begin{itemize}\small
+  \item disk: \SI{227}{\gibi\byte} free vs.\ \SI{71.6}{\gibi\byte} needed
+        --- \emph{not} the blocker
+  \item memory: store is memory-mapped, reads page through the OS cache
+        --- \emph{not} the blocker
+  \item \textbf{the fixed \SI{71.6}{\gibi\byte} transfer} --- no key-level
+        remote access, so there is no way to fetch just the 1000 rows a sweep
+        would need
+\end{itemize}
 \end{column}
 \end{columns}
 
-\take{whatever CIC's features lack, the classical kernel finds something in
-them that the fidelity kernel does not. So (1) alone cannot be the answer.}
+\take{resume conditions are written down. A future contributor needs no further
+investigation --- only the bandwidth.}
 \end{frame}
+\note{
+\textbf{Day 30 (40s). Short slide --- do not linger.}
+Two separate pieces of work; only one was done. Say that explicitly so nobody
+reads the labelling report as results.\\
+Zero SOREL rows exist in our experiment log. I checked.\\
+The useful part is the right column: I ruled out disk and memory by measurement,
+so the next person does not re-investigate. It is purely download time.\\
+Closing rather than deferring because nobody intends to pick it up this cycle.
+}
 
-\begin{frame}{Feature geometry --- explains the dataset, not the kernel}
+% ================================================================= day 31
+\begin{frame}{\daytag{31}Are the 1000-row subsamples even faithful?}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.46\textwidth}
 \centering
-\includegraphics[width=0.90\textwidth]{\FIG{fig_geometry.pdf}}
+\includegraphics[width=\textwidth]{\FIG{fig_representativeness.pdf}}
+\end{column}
+\begin{column}{0.50\textwidth}
+\small
+Specified in Week 2. \textbf{Never executed.} Every quantum result in this
+project has assumed it for four weeks.
+
+\vspace{0.5em}
+A KS rejection count alone is uninterpretable --- a \emph{faithful} subsample
+still rejects $\approx \alpha \cdot n_{\mathrm{features}}$ by chance. So read it
+against that expectation:
+
+\vspace{0.4em}
+\begin{itemize}\small
+  \item CIC: \textbf{0} of 55 rejected, $\approx 2.75$ expected
+  \item EMBER: \textbf{1} of 2381 rejected, $\approx 119$ expected
+  \item class-proportion drift $< 0.001$ on both
+\end{itemize}
+\end{column}
+\end{columns}
+
+\take{both subsamples are faithful. Four weeks of results now rest on a
+measured foundation instead of an assumption.}
+\end{frame}
+\note{
+\textbf{Day 31, part 1 (45s).}
+Be honest about the framing: this was assigned in Week 2 and nobody ran it,
+including me, until now.\\
+The chart is the whole argument --- grey is what chance produces, blue is what
+we observed. Both far below chance.\\
+If someone asks why it matters: every quantum number in four weeks of reports
+sits on these 1000 rows. If the subsample were skewed, all of it would be
+suspect.
+}
+
+\begin{frame}{\daytag{31}Feature geometry --- a dataset effect}
+\centering
+\includegraphics[width=0.88\textwidth]{\FIG{fig_geometry.pdf}}
 
 \raggedright
 \footnotesize
 EMBER's families are $\approx 8\times$ more separable by Fisher ratio, up to
 $50\times$ on the worst-case family. CIC's silhouette is \textbf{negative at
-every} \nc{}: the average point lies closer to another family's centroid than
-its own. CIC's PCA nonetheless explains \emph{more} variance ($33$--$81\%$ vs.\
+every} \nc{}: the average point lies closer to \emph{another} family's centroid
+than its own. Yet CIC's PCA explains \emph{more} variance ($33$--$81\%$ vs.\
 $8$--$30\%$) --- its variance sits in directions that do not discriminate family.
 
 \take{this explains why \emph{every} method does badly on CIC 15-class. It
 cannot explain the QSVM-specific failure.}
 \end{frame}
+\note{
+\textbf{Day 31, part 2 (50s). Set up the Day 33 punchline here.}
+Both metrics are scale-invariant, so the CIC-vs-EMBER comparison is legitimate
+despite very different dimensionality.\\
+The counter-intuitive bit is worth pausing on: CIC's PCA captures \emph{more}
+variance and separates \emph{less}. Its variance tracks workload, not family.\\
+Then the pivot: classical SVM gets 0.108--0.165 from these same features where
+the QSVM gets 0.056--0.079. So hard features cannot be the whole story.\\
+That question is Day 33.
+}
 
-\begin{frame}{Kernel geometry --- the answer}
+% ================================================================= day 32
+\begin{frame}{\daytag{32}Quantum feature extraction --- not my scope}
+\vspace{1.2em}
 \centering
-\includegraphics[width=0.90\textwidth]{\FIG{fig_kernel_diagnostics.pdf}}
+\large
+Day 32 (quantum feature extraction, C0-V0-H2) belongs to
+\textbf{Elizabeth and Ge}.
+
+\vspace{1.0em}
+\normalsize
+Listed here so its absence is not read as a gap on the QSVM side.
+
+\vspace{1.4em}
+\small\color{gray!60!black}
+Also not mine, and listed for the same reason:
+VQC (not planned by this contributor) \quad$\cdot$\quad
+CTGAN run (blocked on Team B) \quad$\cdot$\quad
+evaluation-protocol finalisation (blocked on Team A)
+\end{frame}
+\note{
+\textbf{Day 32 (20s). Deliberately a fast slide.}
+Say it and move on. The only reason it exists is so the day sequence has no
+silent hole.\\
+If someone asks about the greyed line: CTGAN is ready on my side --- the CLI
+takes any parquet --- it just needs the augmented dataset from Team B.
+}
+
+% ================================================================= day 33
+\begin{frame}{\daytag{33}Kernel diagnostics --- the answer}
+\centering
+\includegraphics[width=0.88\textwidth]{\FIG{fig_kernel_diagnostics.pdf}}
 
 \raggedright
 \footnotesize
-Both panels: first outer training fold, \nc{}~$=6$, IQP encoding, 800 rows. The
-RBF control is built on the \textbf{identical} feature matrix --- that is what
-separates ``these features are hard'' from ``this kernel is bad''.
+First outer training fold, \nc{}~$=6$, IQP encoding, 800 rows. The RBF control
+is built on the \textbf{identical} feature matrix --- that is what separates
+``these features are hard'' from ``this kernel is bad''.
 
-\take{RBF produces the same spread on both datasets ($0.221$ vs.\ $0.218$). The
+\take{RBF gives the same spread on both datasets ($0.221$ vs.\ $0.218$). The
 fidelity kernel matches it on EMBER ($0.92\times$) and \textbf{collapses to
 $\mathbf{0.40\times}$ on CIC}.}
 \end{frame}
+\note{
+\textbf{Day 33 (70s). This is the slide of the week --- slow down.}
+The control is the whole design: same features, two kernels.\\
+Panel (a), read the orange bars first --- RBF is flat across datasets. So CIC's
+features do \emph{not} make a classical kernel concentrate.\\
+Then the blue: matches RBF on EMBER, collapses on CIC. That is a property of the
+\emph{kernel}.\\
+Panel (b): alignment must be read against its floor. A constant kernel scores
+$1/\sqrt{15}$ on 15 balanced classes. On CIC the fidelity kernel is
+\emph{below} that floor --- indistinguishable from an all-ones matrix.\\
+Cost note if asked: 6 minutes, two Gram builds. The sweep-wide concentration
+numbers were already logged, so they were free.
+}
 
-\begin{frame}{What the kernel result does and does not support}
+\begin{frame}{\daytag{33}What this supports --- and what it does not}
 \small
 \begin{block}{Supported}
 The failure on CIC is a property of \textbf{the kernel}, not of the dataset.
-A classical kernel on identical features does not concentrate; the quantum one
-does. The Gram approaches a scaled identity --- every pair looks equally
-similar --- and an SVM given that has nothing to separate on. That is what a
-macro-F1 pinned to chance looks like from the inside.
+The Gram approaches a scaled identity --- every pair looks equally similar ---
+and an SVM given that has nothing to separate on. That is what a macro-F1
+pinned to chance looks like from the inside.
 \end{block}
 
 \begin{block}{Not supported}
 That tuning \texttt{bandwidth} would repair it. Bandwidth is the identified
 mechanism and has never been tuned on CIC beyond its default --- but no sweep
-was run. This is a hypothesis with a named lever, not a measured fix.
+was run. A hypothesis with a named lever, not a measured fix.
 \end{block}
 
 \begin{block}{One tension we state rather than resolve}
-Alignment says neither kernel's Gram carries label information on CIC, yet a
-classical SVM reaches $0.16$ there. Alignment is a global unweighted average
-over all pairs; an SVM needs no such thing. It ranks dataset difficulty well
-and predicts achievable SVM performance poorly.
+Alignment says neither kernel carries label information on CIC, yet classical
+SVM reaches $0.16$ there. Alignment is a global unweighted average over all
+pairs; an SVM needs no such thing. It ranks dataset difficulty well and predicts
+achievable SVM performance poorly.
 \end{block}
 \end{frame}
+\note{
+\textbf{Day 33, part 2 (50s). The credibility slide.}
+Three blocks, and the second and third are the ones that matter for trust.\\
+Do not let anyone leave thinking we fixed CIC. We named a mechanism. Bandwidth
+is untested on CIC.\\
+The third block is a genuine inconsistency in our own evidence and I would
+rather raise it than have a reviewer find it. Alignment is a blunt instrument;
+concentration is not, because it describes the matrix the SVM actually receives.
+}
 
-% ---------------------------------------------------------------- significance
-\begin{frame}{Result 3 --- the first significance tests}
+% ================================================================= day 34
+\begin{frame}{\daytag{34}Significance tests --- specified in Week 1, never run}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.52\textwidth}
 \centering
@@ -275,7 +439,8 @@ and predicts achievable SVM performance poorly.
 \end{column}
 \begin{column}{0.44\textwidth}
 \small
-Specified in Week 1. Built, unit-tested, and \textbf{never run} until now.
+The infrastructure was built and unit-tested in Week 1 and \textbf{never
+executed}.
 
 \vspace{0.6em}
 Four weeks of ``QSVM loses to classical'' rested on differences in mean
@@ -293,76 +458,85 @@ Worst $p$-value across every pair: $\mathbf{0.0241}$.
 \take{the headline claim now has evidence behind it, not an unexamined mean
 difference.}
 \end{frame}
+\note{
+\textbf{Day 34, part 1 (45s).}
+Lead with the admission: we had been asserting this for four weeks without a
+test.\\
+Every point is left of the dashed line and above zero. 84 out of 84.\\
+Worst p-value is 0.024 --- so this is not marginal anywhere.\\
+Next slide is the caveat slide; do not stop here or it sounds too clean.
+}
 
-\begin{frame}{Two things we will not overclaim}
+\begin{frame}{\daytag{34}Two things I will not overclaim}
 \small
 \begin{block}{Wilcoxon returned $0.0625$ for all 84 pairs --- that is not a null result}
 With 5 paired samples, $0.0625$ is the \emph{smallest attainable} two-sided
-$p$-value. The test is mathematically incapable of reaching $0.05$ at this fold
-count, whatever the effect size. All 84 hitting the floor means every pair
-achieved the most extreme rank configuration available.
-\emph{Fix:} 6 folds would put $0.03125$ in reach --- not a different test.
+$p$-value. The test cannot reach $0.05$ at this fold count, whatever the effect
+size. All 84 hitting the floor means every pair achieved the most extreme rank
+configuration available. \emph{Fix:} 6 folds puts $0.03125$ in reach --- not a
+different test.
 \end{block}
 
 \begin{block}{All CIC binary comparisons are untestable}
 Every CIC binary run --- classical \textbf{and} quantum --- predates
-parent/child run tracking and carries no recoverable sweep boundary. Raw
-records show the QSVM at $0.92$--$1.00$, consistent with the earlier ``ties on
-binary'' reading, but they resolve into two distinct sweeps per \nc{} with no
-identifier separating them.
-\emph{We did not reconstruct a grouping.} Doing so would invent a boundary the
-data does not record. The limitation is symmetric across frameworks.
+parent/child run tracking and carries no recoverable sweep boundary. Raw records
+show the QSVM at $0.92$--$1.00$, consistent with the earlier ``ties on binary''
+reading, but they resolve into two sweeps per \nc{} with no identifier
+separating them. \emph{We did not reconstruct a grouping} --- that would invent
+a boundary the data does not record.
 \end{block}
+
+\take{the limitation is symmetric across frameworks. It is a logging gap, not a
+quantum result.}
 \end{frame}
+\note{
+\textbf{Day 34, part 2 (55s). Expect questions here.}
+The Wilcoxon point is the one people get wrong: 0.0625 looks like failure and is
+actually the floor. If we reported ``Wilcoxon found nothing'' that would be a
+serious misreading of our own data.\\
+CIC binary is the awkward one --- it is the only place quantum was ever
+competitive, and it is exactly the place we cannot test. I would rather say that
+than quietly drop the configuration.\\
+If pressed on why not group by timestamp: because the gaps are not a recorded
+boundary, they are a guess, and a guess here would fabricate a result.
+}
 
-% ---------------------------------------------------------------- closures
-\begin{frame}{Also closed this week}
-\small
-\begin{block}{Subsample representativeness --- specified in Week 2, never executed}
-Every quantum result uses a 1000-row subsample. Read against its null
-expectation --- a faithful subsample still produces
-$\approx \alpha \cdot n_{\mathrm{features}}$ rejections by chance --- CIC rejects
-\textbf{nothing} of 55 features where $\approx 2.75$ were expected; EMBER rejects
-\textbf{one} of 2381 where $\approx 119$ were. Class-proportion drift $< 0.001$.
-\emph{Four weeks of results now rest on a measured foundation.}
-\end{block}
-
-\begin{block}{SOREL-20M --- closed, not deferred}
-The labelling scheme was designed and validated over 19.7M rows and remains
-delivered work; the feature store was never fetched and \textbf{no sweep was
-ever run}. The two are independent --- the labelling work is not partial credit
-for the sweeps. Neither disk (\SI{227}{\gibi\byte} free vs.\
-\SI{71.6}{\gibi\byte}) nor memory is the blocker; it is the fixed
-\SI{71.6}{\gibi\byte} transfer, because the store offers no key-level remote
-access.
-\end{block}
-\end{frame}
-
-% ---------------------------------------------------------------- summary
-\begin{frame}{Summary}
+% ================================================================= day 35
+\begin{frame}{\daytag{35}Where the week leaves us}
 \small
 \begin{itemize}
   \item Classical models beat the QSVM on \textbf{every} testable configuration
         --- now with $p<0.05$ on all 84, not on mean differences alone.
   \item The EMBER margins were \textbf{understated}, not overstated. Every
         correction this week went against the quantum pipeline.
-  \item The one configuration where the quantum pipeline was ever competitive
-        --- CIC binary --- cannot be significance-tested from what was logged,
-        and we say so rather than dropping it quietly.
+  \item The one configuration where quantum was ever competitive --- CIC binary
+        --- cannot be tested from what was logged, and we say so.
 \end{itemize}
 
-\vspace{0.5em}
+\vspace{0.4em}
 \begin{block}{The transferable result}
 The fidelity kernel does not fail on CIC because CIC's features are hard --- a
-classical RBF kernel on the identical features does not concentrate. It fails
+classical RBF kernel on identical features does not concentrate. It fails
 because \textbf{the fidelity kernel collapses to $\mathbf{0.40\times}$ the
-classical kernel's spread} on that data. That is a statement about the method,
-not about the dataset.
+classical kernel's spread}. That is a statement about the method, not the
+dataset.
 \end{block}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \textbf{Next:} tune \texttt{bandwidth} on CIC --- the named mechanism, still
-untested; move to 6 folds so a non-parametric test becomes usable.
+untested. \quad Move to 6 folds so a non-parametric test becomes usable.
 \end{frame}
+\note{
+\textbf{Day 35, close (60s).}
+Three bullets, then one idea.\\
+The idea is the last block: our most transferable finding is about the
+\emph{method}, not about either dataset. That is what would generalise to
+somebody else's data.\\
+Backlog is empty on the QSVM side --- 144 tests passing, reports and paper
+sections written.\\
+Two concrete next steps, both small. Bandwidth on CIC is the obvious follow-up
+because we named the mechanism and did not test the lever.\\
+Stop here. Take questions.
+}
 
 \end{document}
