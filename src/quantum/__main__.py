@@ -23,6 +23,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-samples", type=int, default=400,
                    help="stratified subsample size (QSVM kernel is O(n^2)).")
     p.add_argument("--encodings", nargs="+", default=["angle", "iqp"])
+    p.add_argument(
+        "--bandwidths", type=float, nargs="+", default=None,
+        help="bandwidth values to tune over. Omit to use the encoding's "
+             "default (n_qubits**-0.5), which is what every result before "
+             "Week 6 used. Bandwidth scales inputs before rotation and is the "
+             "parameter that acts on fidelity-kernel concentration "
+             "(arXiv:2206.06686).",
+    )
     p.add_argument("--probe", action="store_true",
                    help="single untuned fit to measure wall-clock, then exit.")
     p.add_argument(
@@ -116,7 +124,11 @@ def main(argv=None) -> int:
         # is already row-aligned to sample_idx above.
         folds = data.make_outer_folds(y, n_splits=args.folds, seed=args.seed)
         data.save_folds(folds, folds_path)
-        grid = {"encoding": args.encodings, "bandwidth": [None],
+        # bandwidth None -> run.tune_and_fit_qsvm substitutes
+        # default_bandwidth(n_qubits), so omitting --bandwidths reproduces
+        # every sweep run before the flag existed.
+        grid = {"encoding": args.encodings,
+                "bandwidth": args.bandwidths if args.bandwidths else [None],
                 "C": [0.1, 1.0, 10.0], "class_weight": [None, "balanced"]}
         dataset_name = {"cic": "cic-malmem", "ember": "ember-2018",
                         "sorel": "sorel-20m"}[args.dataset]

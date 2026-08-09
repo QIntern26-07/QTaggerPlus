@@ -2,6 +2,7 @@ import numpy as np
 
 from common import data
 from classical.__main__ import aggregate_records
+from quantum.__main__ import build_parser as build_quantum_parser
 
 
 def test_save_predictions_round_trips_through_disk(tmp_path):
@@ -45,3 +46,15 @@ def test_aggregate_records_computes_mean_and_std():
     assert abs(agg["accuracy_mean"] - 0.92) < 1e-9
     assert abs(agg["f1_macro_mean"] - 0.90) < 1e-9
     assert agg["accuracy_std"] > 0
+
+
+def test_quantum_parser_defaults_bandwidths_to_none():
+    # None, not a value: the grid must fall through to the encoding's
+    # default_bandwidth so every pre-Week-6 result stays reproducible.
+    args = build_quantum_parser().parse_args([])
+    assert args.bandwidths is None
+
+
+def test_quantum_parser_accepts_multiple_bandwidths():
+    args = build_quantum_parser().parse_args(["--bandwidths", "0.1", "0.4", "1.0"])
+    assert args.bandwidths == [0.1, 0.4, 1.0]
