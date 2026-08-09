@@ -1,0 +1,42 @@
+{
+  "dataset": "cic-malmem",
+  "task": "multiclass",
+  "n_components": 6,
+  "encoding": "iqp",
+  "n_train": 800,
+  "rbf_offdiag_std": 0.22122015158227268,
+  "rbf_alignment": 0.25609602815810645,
+  "records": [
+    {
+      "bandwidth": 0.05,
+      "offdiag_std": 0.0008928281021849073,
+      "alignment": 0.26003120678083225,
+      "ratio_to_rbf": 0.004035925731896359
+    },
+    {
+      "bandwidth": 0.1,
+      "offdiag_std": 0.003785167925010232,
+      "alignment": 0.2600526481449937,
+      "ratio_to_rbf": 0.017110411949078305
+    },
+    {
+      "bandwidth": 0.2,
+      "offdiag_std": 0.01804751930615797,
+      "alignment": 0.26012632419639137,
+      "ratio_to_rbf": 0.08158171476275308
+    },
+    {
+      "bandwidth": 0.408248290463863,
+      "offdiag_std": 0.08855674510280961,
+      "alignment": 0.2599553280749758,
+      "ratio_to_rbf": 0.4003104801683268
+    },
+    {
+      "bandwidth": 1.0,
+      "offdiag_std": 0.28712197177477,
+      "alignment": 0.24783060857210412,
+      "ratio_to_rbf": 1.2979015235327156
+    }
+  ],
+  "rbf_gamma": 0.5827503018135827
+}

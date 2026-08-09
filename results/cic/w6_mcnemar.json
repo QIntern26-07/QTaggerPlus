@@ -1,0 +1,47 @@
+{
+  "quantum_predictions": "results/cic/qsvm_multiclass_nc6_iqp_predictions.npz",
+  "classical_dir": "results/cic/w6_nc6_predictions",
+  "comparisons": [
+    {
+      "model": "random_forest",
+      "n_samples": 1000,
+      "qsvm_correct": 162,
+      "classical_correct": 171,
+      "statistic": 81.0,
+      "pvalue": 0.5408115779969369,
+      "n01": 90,
+      "n10": 81
+    },
+    {
+      "model": "xgboost",
+      "n_samples": 1000,
+      "qsvm_correct": 162,
+      "classical_correct": 148,
+      "statistic": 78.0,
+      "pvalue": 0.3187412841052537,
+      "n01": 78,
+      "n10": 92
+    },
+    {
+      "model": "lightgbm",
+      "n_samples": 1000,
+      "qsvm_correct": 162,
+      "classical_correct": 164,
+      "statistic": 92.0,
+      "pvalue": 0.941574846370718,
+      "n01": 94,
+      "n10": 92
+    },
+    {
+      "model": "svm",
+      "n_samples": 1000,
+      "qsvm_correct": 162,
+      "classical_correct": 185,
+      "statistic": 53.0,
+      "pvalue": 0.05232353322391846,
+      "n01": 76,
+      "n10": 53
+    }
+  ],
+  "skipped": []
+}
